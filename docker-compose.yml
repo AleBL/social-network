@@ -3,47 +3,57 @@ services:
     image: neo4j:latest
     container_name: neo4j
     environment:
-      - NEO4J_AUTH=neo4j/strongpassword
+      NEO4J_AUTH: "${NEO4J_USER}/${NEO4J_PASSWORD}"
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "${NEO4J_HTTP_PORT}:7474"
+      - "${NEO4J_BOLT_PORT}:7687"
     volumes:
       - neo4j-data:/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "${NEO4J_USER}", "-p", "${NEO4J_PASSWORD}", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
 
   social-network-backend:
     build:
       context: ./social-network-backend
     container_name: social-network-backend
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT}:3000"
     volumes:
       - ./social-network-backend:/app
     environment:
-      - NODE_ENV=development
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=strongpassword
+      NODE_ENV: development
+      NEO4J_URI: bolt://neo4j:${NEO4J_BOLT_PORT}
+    env_file: 
+      - .env
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_healthy
     networks:
       - app-network
     command: ["yarn", "start"]
+    restart: unless-stopped
 
   social-network-frontend:
     build:
       context: ./social-network-frontend
     container_name: social-network-frontend
     ports:
-      - "8080:8080"
+      - "${FRONTEND_PORT}:8080"
     volumes:
       - ./social-network-frontend:/app
     depends_on:
-      - social-network-backend
+      social-network-backend:
+        condition: service_started
     networks:
       - app-network
     command: ["yarn", "start"]
+    restart: unless-stopped
 
 networks:
   app-network:
