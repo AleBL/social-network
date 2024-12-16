@@ -6,6 +6,11 @@ const typeDefs = `
     id: ID!
     name: String!
     email: String! @unique
+    friends: [User!]! @relationship(type: "FRIEND", direction: OUT, properties: "FriendProperties")
+  }
+
+  type FriendProperties @relationshipProperties {
+    since: DateTime!
   }
 `;
 
