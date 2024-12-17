@@ -1,122 +1,98 @@
-const { getAllUsers, getUserById, createUser, createFriendship, listFriends, findCommonFriends, recommendFriends } = require('../services/userService');
+const { 
+    getAllUsers, 
+    getUserById, 
+    createUser, 
+    createFriendship, 
+    listFriends, 
+    findCommonFriends, 
+    recommendFriends 
+  } = require('../services/userService');
+  
+  const handleResponse = (res, statusCode, data, count = null) => {
+    const response = {
+      status: 'success',
+      data
+    };
 
-exports.getAllUsers = (req, res) => {
-    getAllUsers()
-        .then((data) => {
-            res.status(201).json({
-                status: 'success',
-                data: data
-            });
-        })
-        .catch(err => {
-            res.status(500).json({
-                status: 'error',
-                error: err.message
-            });
-        });
-}
+    if (count) {
+      response.count = count;
+    }
 
-exports.getUserById = (req, res) => {
-    const { userId } = req.params;
-    getUserById(userId)
-        .then((data) => {
-            res.status(200).json({
-                status: 'success',
-                data: data
-            });
-        })
-        .catch(err => {
-            res.status(404).json({
-                status: 'error',
-                error: err.message
-            });
-        });
-}
-
-exports.createUser = (req, res) => {
-  const user = req.body;
-  createUser(user)
-    .then(() => {
-      res.status(201).json({
-        status: 'success',
-        data: 'User created'
-      });
-    })
-    .catch(err => {
-      res.status(500).json({
-        status: 'error',
-        error: err.message
-      });
+    res.status(statusCode).json(response);
+  };
+  
+  const handleError = (res, statusCode, error) => {
+    res.status(statusCode).json({
+      status: 'error',
+      error: error?.message || 'An unexpected error occurred',
     });
-};
-
-exports.createFriendship = (req, res) => {
-  const { userId1, userId2 } = req.body;
-  createFriendship(userId1, userId2)
-    .then(() => {
-      res.status(201).json({
-        status: 'success',
-        data: 'Friendship created'
-      });
-    })
-    .catch(err => {
-      res.status(500).json({
-        status: 'error',
-        error: err.message
-      });
-    });
-};
-
-exports.listFriends = (req, res) => {
-    const { userId } = req.params;
-    listFriends(userId)
-        .then((data) => {
-            res.status(200).json({
-                status: 'success',
-                count: data.length,
-                data: data
-            });
-        })
-        .catch(err => {
-            res.status(500).json({
-                status: 'error',
-                error: err.message
-            });
-        });
-};
-
-exports.findCommonFriends = (req, res) => {
-    const { userId1, userId2 } = req.params;
-    findCommonFriends(userId1, userId2)
-        .then((data) => {
-            res.status(200).json({
-                status: 'success',
-                count: data.length,
-                data: data
-            });
-        })
-        .catch(err => {
-            res.status(500).json({
-                status: 'error',
-                error: err.message
-            });
-        });
-};
-
-exports.recommendFriends = (req, res) => {
-    const { userId } = req.params;
-    recommendFriends(userId)
-        .then((data) => {
-            res.status(200).json({
-                status: 'success',
-                count: data.length,
-                data: data
-            });
-        })
-        .catch(err => {
-            res.status(500).json({
-                status: 'error',
-                error: err.message
-            });
-        });
-};
+  };
+  
+  exports.getAllUsers = async (req, res) => {
+    try {
+      const data = await getAllUsers();
+      handleResponse(res, 200, data, data.length);
+    } catch (err) {
+      handleError(res, 500, err);
+    }
+  };
+  
+  exports.getUserById = async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const data = await getUserById(userId);
+      handleResponse(res, 200, data);
+    } catch (err) {
+      handleError(res, 404, err);
+    }
+  };
+  
+  exports.createUser = async (req, res) => {
+    try {
+      const user = req.body;
+      await createUser(user);
+      handleResponse(res, 201, 'User created');
+    } catch (err) {
+      handleError(res, 500, err);
+    }
+  };
+  
+  exports.createFriendship = async (req, res) => {
+    try {
+      const { userId1, userId2 } = req.body;
+      await createFriendship(userId1, userId2);
+      handleResponse(res, 201, 'Friendship created');
+    } catch (err) {
+      handleError(res, 500, err);
+    }
+  };
+  
+  exports.listFriends = async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const data = await listFriends(userId);
+      handleResponse(res, 200, data, data.length);
+    } catch (err) {
+      handleError(res, 500, err);
+    }
+  };
+  
+  exports.findCommonFriends = async (req, res) => {
+    try {
+      const { userId1, userId2 } = req.params;
+      const data = await findCommonFriends(userId1, userId2);
+      handleResponse(res, 200, data, data.length);
+    } catch (err) {
+      handleError(res, 500, err);
+    }
+  };
+  
+  exports.recommendFriends = async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const data = await recommendFriends(userId);
+      handleResponse(res, 200, data, data.length);
+    } catch (err) {
+      handleError(res, 500, err);
+    }
+  };

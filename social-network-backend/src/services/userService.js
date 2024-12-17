@@ -71,7 +71,7 @@ async function listFriends(userId) {
     `
   });
 
-  return friends[0]?.friends || [];
+  return friends[0]?.friends;
 }
 
 async function findCommonFriends(userId1, userId2) {
