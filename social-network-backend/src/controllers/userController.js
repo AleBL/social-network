@@ -33,3 +33,20 @@ exports.getUserById = (req, res) => {
         });
 }
 
+exports.createUser = (req, res) => {
+  const user = req.body;
+  createUser(user)
+    .then(() => {
+      res.status(201).json({
+        status: 'success',
+        data: 'User created'
+      });
+    })
+    .catch(err => {
+      res.status(500).json({
+        status: 'error',
+        error: err.message
+      });
+    });
+};
+
