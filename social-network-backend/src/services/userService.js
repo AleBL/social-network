@@ -54,3 +54,22 @@ async function createFriendship(userId1, userId2) {
   await createFriendshipDatabase(userId2, userId1);
 }
 
+async function listFriends(userId) {
+  await getUserById(userId);
+
+  const friends = await User.find({
+    where: { id: userId },
+    selectionSet: `
+      {
+        friends {
+          id
+          name
+          email
+        }
+      }
+    `
+  });
+
+  return friends[0]?.friends || [];
+}
+
