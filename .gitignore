@@ -16,6 +16,5 @@ Thumbs.db
 
 *.log
 
+/social-network-backend/coverage/
 /social-network-frontend/dist/
-
-*.log

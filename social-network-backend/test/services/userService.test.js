@@ -138,6 +138,20 @@ describe('User Service', () => {
       expect(result).toEqual(mockFriends);
     });
 
+    it('should return an empty list if the user has no friends', async () => {
+      const mockUser = { id: '1', name: 'Alice', friends: [] };
+
+      User.find.mockResolvedValue([mockUser]);
+
+      const result = await userService.listFriends('1');
+
+      expect(User.find).toHaveBeenCalledWith({
+        where: { id: '1' },
+        selectionSet: expect.any(String),
+      });
+      expect(result).toEqual([]);
+    });
+
     it('should throw an error if the user is not found', async () => {
       User.find.mockResolvedValue([]);
 
