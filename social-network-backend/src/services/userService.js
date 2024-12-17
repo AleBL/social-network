@@ -1,6 +1,20 @@
 const { User } = require('../models/user');
 const { v4: uuidv4 } = require('uuid');
 
+async function createFriendshipDatabase(userInId, userOutId) {
+  await User.update({
+    where: { id: userInId },
+    connect: {
+      friends: [
+        {
+          where: { node: { id: userOutId } },
+          edge: { since: new Date().toISOString() }
+        }
+      ]
+    }
+  });
+}
+
 async function getAllUsers() {
   const result = await User.find({});
   return result;
@@ -30,5 +44,13 @@ async function createUser(userData) {
   });
 
   return user;
+}
+
+async function createFriendship(userId1, userId2) {
+  await getUserById(userId1);
+  await getUserById(userId2);
+
+  await createFriendshipDatabase(userId1, userId2);
+  await createFriendshipDatabase(userId2, userId1);
 }
 
