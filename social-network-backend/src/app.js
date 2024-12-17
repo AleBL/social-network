@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const port = 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -13,6 +12,9 @@ app.get('/ping', (req, res) => {
     });
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+const userRoutes = require('./routes/userRoutes'); 
+app.use('/api/users', userRoutes);
+
+app.listen(process.env.BACKEND_PORT, () => {
+  console.log(`Server is running on http://localhost:${process.env.BACKEND_PORT}`);
 });
