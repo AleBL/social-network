@@ -103,3 +103,20 @@ exports.findCommonFriends = (req, res) => {
         });
 };
 
+exports.recommendFriends = (req, res) => {
+    const { userId } = req.params;
+    recommendFriends(userId)
+        .then((data) => {
+            res.status(200).json({
+                status: 'success',
+                count: data.length,
+                data: data
+            });
+        })
+        .catch(err => {
+            res.status(500).json({
+                status: 'error',
+                error: err.message
+            });
+        });
+};
