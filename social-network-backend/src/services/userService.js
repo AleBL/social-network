@@ -73,3 +73,14 @@ async function listFriends(userId) {
   return friends[0]?.friends || [];
 }
 
+async function findCommonFriends(userId1, userId2) {
+  const user1Friends = await listFriends(userId1);
+  const user2Friends = await listFriends(userId2);
+
+  const commonFriends = user1Friends.filter(friend1 =>
+    user2Friends.some(friend2 => friend2.id === friend1.id)
+  );
+
+  return commonFriends;
+}
+
