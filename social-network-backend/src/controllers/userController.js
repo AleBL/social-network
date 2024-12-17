@@ -15,3 +15,21 @@ exports.getAllUsers = (req, res) => {
             });
         });
 }
+
+exports.getUserById = (req, res) => {
+    const { userId } = req.params;
+    getUserById(userId)
+        .then((data) => {
+            res.status(200).json({
+                status: 'success',
+                data: data
+            });
+        })
+        .catch(err => {
+            res.status(404).json({
+                status: 'error',
+                error: err.message
+            });
+        });
+}
+
