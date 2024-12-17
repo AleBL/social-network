@@ -1,5 +1,6 @@
 const { User } = require('../models/user');
 const { v4: uuidv4 } = require('uuid');
+const { driver } = require('../services/ogm');
 
 async function createFriendshipDatabase(userInId, userOutId) {
   await User.update({
@@ -84,3 +85,36 @@ async function findCommonFriends(userId1, userId2) {
   return commonFriends;
 }
 
+async function recommendFriends(userId) {
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `
+      MATCH (user:User {id: $userId})-[:FRIEND]->(friend:User)-[:FRIEND]->(indirectFriend:User)
+      WHERE NOT (user)-[:FRIEND]->(indirectFriend) AND indirectFriend.id <> user.id
+      RETURN indirectFriend
+      `,
+      { userId }
+    );
+
+    const friendsOfFriends = result.records.map(record => record.get('indirectFriend')?.properties);
+
+    await session.close();
+  return friendsOfFriends;
+  } catch (error) {
+    throw error;
+  } finally {
+    await session.close();
+  }
+}
+
+module.exports = {
+  getAllUsers,
+  getUserById,
+  createUser,
+  createFriendship,
+  listFriends,
+  findCommonFriends,
+  recommendFriends
+};
