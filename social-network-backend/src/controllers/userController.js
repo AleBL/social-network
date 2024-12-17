@@ -50,3 +50,20 @@ exports.createUser = (req, res) => {
     });
 };
 
+exports.createFriendship = (req, res) => {
+  const { userId1, userId2 } = req.body;
+  createFriendship(userId1, userId2)
+    .then(() => {
+      res.status(201).json({
+        status: 'success',
+        data: 'Friendship created'
+      });
+    })
+    .catch(err => {
+      res.status(500).json({
+        status: 'error',
+        error: err.message
+      });
+    });
+};
+
