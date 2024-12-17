@@ -85,3 +85,21 @@ exports.listFriends = (req, res) => {
         });
 };
 
+exports.findCommonFriends = (req, res) => {
+    const { userId1, userId2 } = req.params;
+    findCommonFriends(userId1, userId2)
+        .then((data) => {
+            res.status(200).json({
+                status: 'success',
+                count: data.length,
+                data: data
+            });
+        })
+        .catch(err => {
+            res.status(500).json({
+                status: 'error',
+                error: err.message
+            });
+        });
+};
+
