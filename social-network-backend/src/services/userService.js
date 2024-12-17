@@ -1,4 +1,5 @@
 const { User } = require('../models/user');
+const { v4: uuidv4 } = require('uuid');
 
 async function getAllUsers() {
   const result = await User.find({});
@@ -16,3 +17,18 @@ async function getUserById(userId) {
 
   return user;
 }
+
+async function createUser(userData) {
+  const user = await User.create({
+    input: [
+      {
+        id: uuidv4(),
+        name: userData.name,
+        email: userData.email,
+      }
+    ]
+  });
+
+  return user;
+}
+
