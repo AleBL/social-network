@@ -8,7 +8,7 @@ jest.mock('../../src/services/userService', () => ({
   createFriendship: jest.fn(),
   listFriends: jest.fn(),
   findCommonFriends: jest.fn(),
-  recommendFriends: jest.fn(),
+  recommendFriends: jest.fn()
 }));
 
 const mockResponse = () => {
@@ -28,12 +28,15 @@ describe('User Controller', () => {
 
   const mockRequest = (params = {}, body = {}) => ({
     params,
-    body,
+    body
   });
 
   describe('getAllUsers', () => {
     it('should return all users', async () => {
-      const mockData = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }];
+      const mockData = [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' }
+      ];
       userService.getAllUsers.mockResolvedValue(mockData);
 
       await userController.getAllUsers({}, res);
@@ -42,7 +45,7 @@ describe('User Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         count: mockData.length,
-        data: mockData,
+        data: mockData
       });
     });
 
@@ -55,7 +58,7 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: mockError.message,
+        error: mockError.message
       });
     });
   });
@@ -71,7 +74,7 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
-        data: mockData,
+        data: mockData
       });
     });
 
@@ -85,7 +88,7 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: mockError.message,
+        error: mockError.message
       });
     });
   });
@@ -100,7 +103,7 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
-        data: 'User created',
+        data: 'User created'
       });
     });
 
@@ -114,7 +117,7 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: mockError.message,
+        error: mockError.message
       });
     });
   });
@@ -130,27 +133,32 @@ describe('User Controller', () => {
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
-        data: 'Friendship created',
+        data: 'Friendship created'
       });
     });
 
     it('should handle errors when creating a friendship', async () => {
       const req = mockRequest({}, { userId1: '1', userId2: '2' });
-      userService.createFriendship.mockRejectedValue(new Error('Database error'));
+      userService.createFriendship.mockRejectedValue(
+        new Error('Database error')
+      );
 
       await userController.createFriendship(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: 'Database error',
+        error: 'Database error'
       });
     });
   });
 
   describe('listFriends', () => {
     it('should return a list of friends', async () => {
-      const mockFriends = [{ id: '2', name: 'Bob' }, { id: '3', name: 'Alice' }];
+      const mockFriends = [
+        { id: '2', name: 'Bob' },
+        { id: '3', name: 'Alice' }
+      ];
       const req = mockRequest({ userId: '1' });
 
       userService.listFriends.mockResolvedValue(mockFriends);
@@ -163,20 +171,22 @@ describe('User Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         count: mockFriends.length,
-        data: mockFriends,
+        data: mockFriends
       });
     });
 
     it('should handle errors when listing friends', async () => {
       const req = mockRequest({ userId: '1' });
-      userService.listFriends.mockRejectedValue(new Error('Failed to list friends'));
+      userService.listFriends.mockRejectedValue(
+        new Error('Failed to list friends')
+      );
 
       await userController.listFriends(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: 'Failed to list friends',
+        error: 'Failed to list friends'
       });
     });
   });
@@ -195,20 +205,22 @@ describe('User Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         count: mockCommonFriends.length,
-        data: mockCommonFriends,
+        data: mockCommonFriends
       });
     });
 
     it('should handle errors when finding common friends', async () => {
       const req = mockRequest({ userId1: '1', userId2: '2' });
-      userService.findCommonFriends.mockRejectedValue(new Error('Failed to find common friends'));
+      userService.findCommonFriends.mockRejectedValue(
+        new Error('Failed to find common friends')
+      );
 
       await userController.findCommonFriends(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: 'Failed to find common friends',
+        error: 'Failed to find common friends'
       });
     });
   });
@@ -227,20 +239,22 @@ describe('User Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         count: mockRecommendations.length,
-        data: mockRecommendations,
+        data: mockRecommendations
       });
     });
 
     it('should handle errors when recommending friends', async () => {
       const req = mockRequest({ userId: '1' });
-      userService.recommendFriends.mockRejectedValue(new Error('Failed to recommend friends'));
+      userService.recommendFriends.mockRejectedValue(
+        new Error('Failed to recommend friends')
+      );
 
       await userController.recommendFriends(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: 'Failed to recommend friends',
+        error: 'Failed to recommend friends'
       });
     });
   });
@@ -252,38 +266,38 @@ describe('User Controller', () => {
       const specificErrorMessage = 'Specific error';
       const mockError = new Error(specificErrorMessage);
       userService.getAllUsers.mockRejectedValue(mockError);
-  
+
       await userController.getAllUsers({}, res);
-  
+
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: specificErrorMessage,
+        error: specificErrorMessage
       });
     });
-  
+
     it('should return the default error message if none is provided', async () => {
       const mockError = {};
       userService.getAllUsers.mockRejectedValue(mockError);
-  
+
       await userController.getAllUsers({}, res);
-  
+
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: unexpectErrorMessage,
+        error: unexpectErrorMessage
       });
     });
-  
+
     it('should return the default error message if the error is undefined', async () => {
       userService.getAllUsers.mockRejectedValue(undefined);
 
       await userController.getAllUsers({}, res);
-  
+
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        error: unexpectErrorMessage,
+        error: unexpectErrorMessage
       });
     });
   });

@@ -7,17 +7,17 @@ jest.mock('../../src/models/user', () => ({
   User: {
     find: jest.fn(),
     create: jest.fn(),
-    update: jest.fn(),
-  },
+    update: jest.fn()
+  }
 }));
 
 jest.mock('../../src/services/ogm', () => ({
   driver: {
     session: jest.fn(() => ({
       run: jest.fn(),
-      close: jest.fn(),
-    })),
-  },
+      close: jest.fn()
+    }))
+  }
 }));
 
 describe('User Service', () => {
@@ -28,7 +28,10 @@ describe('User Service', () => {
   // ----------------- getAllUsers -----------------
   describe('getAllUsers', () => {
     it('should return all users', async () => {
-      const mockUsers = [{ id: '1', name: 'Alice' }, { id: '2', name: 'Bob' }];
+      const mockUsers = [
+        { id: '1', name: 'Alice' },
+        { id: '2', name: 'Bob' }
+      ];
       User.find.mockResolvedValue(mockUsers);
 
       const result = await userService.getAllUsers();
@@ -62,7 +65,9 @@ describe('User Service', () => {
     it('should throw an error if the user is not found', async () => {
       User.find.mockResolvedValue([]);
 
-      await expect(userService.getUserById('123')).rejects.toThrow('User with id 123 not found');
+      await expect(userService.getUserById('123')).rejects.toThrow(
+        'User with id 123 not found'
+      );
     });
   });
 
@@ -80,9 +85,9 @@ describe('User Service', () => {
         input: [
           expect.objectContaining({
             name: userData.name,
-            email: userData.email,
-          }),
-        ],
+            email: userData.email
+          })
+        ]
       });
       expect(result).toEqual([mockCreatedUser]);
     });
@@ -91,7 +96,9 @@ describe('User Service', () => {
       const userData = { name: 'Alice', email: 'alice@example.com' };
       User.create.mockRejectedValue(new Error('Database error'));
 
-      await expect(userService.createUser(userData)).rejects.toThrow('Database error');
+      await expect(userService.createUser(userData)).rejects.toThrow(
+        'Database error'
+      );
     });
   });
 
@@ -113,7 +120,9 @@ describe('User Service', () => {
     it('should throw an error if one of the users does not exist', async () => {
       User.find.mockResolvedValueOnce([]); // Simulating user not found
 
-      await expect(userService.createFriendship('1', '2')).rejects.toThrow('User with id 1 not found');
+      await expect(userService.createFriendship('1', '2')).rejects.toThrow(
+        'User with id 1 not found'
+      );
     });
   });
 
@@ -122,7 +131,7 @@ describe('User Service', () => {
     it('should return the list of friends for a user', async () => {
       const mockFriends = [
         { id: '2', name: 'Bob', email: 'bob@example.com' },
-        { id: '3', name: 'Charlie', email: 'charlie@example.com' },
+        { id: '3', name: 'Charlie', email: 'charlie@example.com' }
       ];
 
       const mockUser = { id: '1', name: 'Alice', friends: mockFriends };
@@ -133,7 +142,7 @@ describe('User Service', () => {
 
       expect(User.find).toHaveBeenCalledWith({
         where: { id: '1' },
-        selectionSet: expect.any(String),
+        selectionSet: expect.any(String)
       });
       expect(result).toEqual(mockFriends);
     });
@@ -147,7 +156,7 @@ describe('User Service', () => {
 
       expect(User.find).toHaveBeenCalledWith({
         where: { id: '1' },
-        selectionSet: expect.any(String),
+        selectionSet: expect.any(String)
       });
       expect(result).toEqual([]);
     });
@@ -155,7 +164,9 @@ describe('User Service', () => {
     it('should throw an error if the user is not found', async () => {
       User.find.mockResolvedValue([]);
 
-      await expect(userService.listFriends('123')).rejects.toThrow('User with id 123 not found');
+      await expect(userService.listFriends('123')).rejects.toThrow(
+        'User with id 123 not found'
+      );
     });
   });
 
@@ -171,9 +182,9 @@ describe('User Service', () => {
         .mockResolvedValueOnce([{ friends: userOne.friends }])
         .mockResolvedValueOnce([userTwo])
         .mockResolvedValueOnce([{ friends: userTwo.friends }]);
-  
+
       const result = await userService.findCommonFriends('1', '2');
-  
+
       expect(User.find).toHaveBeenCalledTimes(4);
       expect(result).toEqual([friend]);
     });
@@ -183,42 +194,43 @@ describe('User Service', () => {
   describe('recommendFriends', () => {
     it('should return friend recommendations', async () => {
       const mockRecommendations = [{ id: '3', name: 'Charlie' }];
-  
+
       const runMock = jest.fn().mockResolvedValue({
-        records: [{ get: () => ({ properties: mockRecommendations[0] }) }],
+        records: [{ get: () => ({ properties: mockRecommendations[0] }) }]
       });
-  
+
       const closeMock = jest.fn();
-  
+
       driver.session.mockReturnValue({
         run: runMock,
-        close: closeMock,
+        close: closeMock
       });
-  
+
       const result = await userService.recommendFriends('1');
-  
+
       expect(result).toEqual(mockRecommendations);
       expect(driver.session).toHaveBeenCalledTimes(1);
-      expect(runMock).toHaveBeenCalledWith(
-        expect.stringContaining('MATCH'),
-        { userId: '1' }
-      );
+      expect(runMock).toHaveBeenCalledWith(expect.stringContaining('MATCH'), {
+        userId: '1'
+      });
       expect(closeMock).toHaveBeenCalled();
     });
-  
+
     it('should handle database errors gracefully', async () => {
       const errorMessage = 'database connection error';
 
       const runMock = jest.fn().mockRejectedValue(new Error(errorMessage));
       const closeMock = jest.fn();
-  
+
       driver.session.mockReturnValue({
         run: runMock,
-        close: closeMock,
+        close: closeMock
       });
-  
-      await expect(userService.recommendFriends('1')).rejects.toThrow(errorMessage);
-  
+
+      await expect(userService.recommendFriends('1')).rejects.toThrow(
+        errorMessage
+      );
+
       expect(driver.session).toHaveBeenCalledTimes(1);
       expect(runMock).toHaveBeenCalled();
       expect(closeMock).toHaveBeenCalled();

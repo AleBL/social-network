@@ -23,7 +23,7 @@ async function getAllUsers() {
 
 async function getUserById(userId) {
   const [user] = await User.find({
-    where: { id: userId },
+    where: { id: userId }
   });
 
   if (!user) {
@@ -39,7 +39,7 @@ async function createUser(userData) {
       {
         id: uuidv4(),
         name: userData.name,
-        email: userData.email,
+        email: userData.email
       }
     ]
   });
@@ -78,8 +78,8 @@ async function findCommonFriends(userId1, userId2) {
   const user1Friends = await listFriends(userId1);
   const user2Friends = await listFriends(userId2);
 
-  const commonFriends = user1Friends.filter(friend1 =>
-    user2Friends.some(friend2 => friend2.id === friend1.id)
+  const commonFriends = user1Friends.filter((friend1) =>
+    user2Friends.some((friend2) => friend2.id === friend1.id)
   );
 
   return commonFriends;
@@ -98,12 +98,12 @@ async function recommendFriends(userId) {
       { userId }
     );
 
-    const friendsOfFriends = result.records.map(record => record.get('indirectFriend')?.properties);
+    const friendsOfFriends = result.records.map(
+      (record) => record.get('indirectFriend')?.properties
+    );
 
     await session.close();
-  return friendsOfFriends;
-  } catch (error) {
-    throw error;
+    return friendsOfFriends;
   } finally {
     await session.close();
   }
