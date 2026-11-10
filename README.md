@@ -34,8 +34,11 @@ To make the setup and deployment effortless, the application is fully containeri
 Before diving in, ensure you have the following tools installed:
 
 - 🐳 **Docker** & **Docker Compose**
-- 🌐 **Node.js** v22.12.0 or higher
+- 🌐 **Node.js** 22.12.0 (pinned in [`.nvmrc`](.nvmrc), run `nvm use`, or with asdf `asdf install nodejs 22.12.0`)
+- 📦 **Yarn** 1.22.22 (pinned via `packageManager`, run `corepack enable` once and Corepack picks the right version)
 - 🧠 **Neo4j** database (if running locally without Docker)
+
+> The frontend (Vue CLI 5) does not install on Node 24+, so stick to Node 22.
 
 ---
 
@@ -110,6 +113,23 @@ If you prefer to run the services manually, follow the steps below.
    ```bash
    yarn start
    ```
+
+---
+
+## 🚀 **Free Deployment (Render + Neo4j AuraDB Free)**
+
+1. Create a free instance on [Neo4j AuraDB](https://console.neo4j.io) and save the generated credentials.
+   On newer Aura instances the **username is the instance ID** (not `neo4j`).
+2. Push this repository to GitHub.
+3. On Render, choose **New > Blueprint** and select the repository. Render reads [`render.yaml`](render.yaml) and creates:
+   - `social-network-backend`: free Node web service (health check on `/ping`).
+   - `social-network-frontend`: static site built from `social-network-frontend/dist`.
+4. When prompted, fill in the secrets (they are asked only once, at Blueprint creation):
+   - `NEO4J_URI`: `neo4j+s://<instance-id>.databases.neo4j.io`
+   - `NEO4J_USER`: the Aura username
+   - `NEO4J_PASSWORD`: the Aura password
+
+Free tier caveats: the Render web service sleeps after ~15 minutes without traffic (first request takes ~1 minute), and AuraDB Free pauses after 72 hours without writes (resume it in the Aura console).
 
 ---
 
