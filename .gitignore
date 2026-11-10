@@ -18,3 +18,5 @@ Thumbs.db
 
 /social-network-backend/coverage/
 /social-network-frontend/dist/
+
+.tool-versions
