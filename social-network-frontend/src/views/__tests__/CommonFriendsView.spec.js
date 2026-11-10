@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouterLinkStub, flushPromises, mount } from '@vue/test-utils';
 import CommonFriendsView from '../CommonFriendsView.vue';
-import { findCommonFriends, getUsers } from '../../services/api';
+import { findCommonFriends, getUser } from '../../services/api';
 
 vi.mock('../../services/api', async (importOriginal) => ({
   ...(await importOriginal()),
   findCommonFriends: vi.fn(),
-  getUsers: vi.fn()
+  getUser: vi.fn()
 }));
 
 const alice = { id: '1', name: 'Alice', email: 'alice@example.com' };
@@ -16,17 +16,23 @@ const dave = { id: '4', name: 'Dave', email: 'dave@example.com' };
 
 let router;
 
-const mountView = (query = {}) =>
-  mount(CommonFriendsView, {
+const mountView = async (query = {}) => {
+  const wrapper = mount(CommonFriendsView, {
     global: {
-      stubs: { RouterLink: RouterLinkStub },
+      stubs: { RouterLink: RouterLinkStub, UserPicker: true },
       mocks: { $route: { query }, $router: router }
     }
   });
+  await flushPromises();
+  return wrapper;
+};
+
+const pickers = (wrapper) => wrapper.findAllComponents({ name: 'UserPicker' });
 
 async function pick(wrapper, a, b) {
-  await wrapper.find('#common-user-a').setValue(a);
-  await wrapper.find('#common-user-b').setValue(b);
+  const [first, second] = pickers(wrapper);
+  await first.vm.$emit('update:modelValue', a);
+  await second.vm.$emit('update:modelValue', b);
   await wrapper.find('form').trigger('submit');
   await flushPromises();
 }
@@ -34,51 +40,35 @@ async function pick(wrapper, a, b) {
 describe('CommonFriendsView', () => {
   beforeEach(() => {
     router = { replace: vi.fn() };
-    getUsers.mockResolvedValue([bob, alice, carol, dave]);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('offers every user, sorted by name, in both selects', async () => {
-    const wrapper = mountView();
-    await flushPromises();
+  it('asks for two people before searching', async () => {
+    const wrapper = await mountView();
 
-    const options = wrapper
-      .findAll('#common-user-a option:not([disabled])')
-      .map((option) => option.text());
-    expect(options).toEqual([
-      'Alice (alice@example.com)',
-      'Bob (bob@example.com)',
-      'Carol (carol@example.com)',
-      'Dave (dave@example.com)'
-    ]);
-  });
-
-  it.each([
-    ['', '', 'Choose two users'],
-    ['1', '1', 'Choose two different users']
-  ])('validates (%j, %j) with "%s"', async (a, b, message) => {
-    const wrapper = mountView();
-    await flushPromises();
-
-    if (a) {
-      await wrapper.find('#common-user-a').setValue(a);
-      await wrapper.find('#common-user-b').setValue(b);
-    }
     await wrapper.find('form').trigger('submit');
 
-    expect(wrapper.find('[role="alert"]').text()).toBe(message);
+    expect(wrapper.find('[role="alert"]').text()).toBe('Choose two people');
     expect(findCommonFriends).not.toHaveBeenCalled();
+  });
+
+  it('keeps each picker from offering the person chosen in the other', async () => {
+    const wrapper = await mountView();
+
+    await pickers(wrapper)[0].vm.$emit('update:modelValue', bob);
+
+    expect(pickers(wrapper)[1].props('excludeIds')).toEqual(['2']);
+    expect(pickers(wrapper)[0].props('excludeIds')).toEqual([]);
   });
 
   it('shows the common friends and keeps them in the URL', async () => {
     findCommonFriends.mockResolvedValue([dave, alice]);
-    const wrapper = mountView();
-    await flushPromises();
+    const wrapper = await mountView();
 
-    await pick(wrapper, '2', '3');
+    await pick(wrapper, bob, carol);
 
     expect(findCommonFriends).toHaveBeenCalledWith('2', '3');
     expect(wrapper.find('#common-results-title').text()).toBe(
@@ -93,10 +83,9 @@ describe('CommonFriendsView', () => {
 
   it('says when there are no friends in common', async () => {
     findCommonFriends.mockResolvedValue([]);
-    const wrapper = mountView();
-    await flushPromises();
+    const wrapper = await mountView();
 
-    await pick(wrapper, '1', '4');
+    await pick(wrapper, alice, dave);
 
     expect(wrapper.find('.empty').text()).toBe('No friends in common.');
   });
@@ -105,10 +94,9 @@ describe('CommonFriendsView', () => {
     findCommonFriends.mockRejectedValue({
       response: { status: 404, data: { error: 'User with id 4 not found' } }
     });
-    const wrapper = mountView();
-    await flushPromises();
+    const wrapper = await mountView();
 
-    await pick(wrapper, '1', '4');
+    await pick(wrapper, alice, dave);
 
     expect(wrapper.find('[role="alert"]').text()).toBe(
       'User with id 4 not found'
@@ -116,22 +104,33 @@ describe('CommonFriendsView', () => {
     expect(wrapper.find('.results').exists()).toBe(false);
   });
 
-  it('searches right away when both users come in the URL', async () => {
+  it('loads both people from the URL and searches right away', async () => {
+    getUser.mockImplementation(async (id) => ({ 2: bob, 3: carol })[id]);
     findCommonFriends.mockResolvedValue([alice]);
 
-    const wrapper = mountView({ a: '2', b: '3' });
-    await flushPromises();
+    const wrapper = await mountView({ a: '2', b: '3' });
 
+    expect(getUser).toHaveBeenCalledWith('2');
+    expect(getUser).toHaveBeenCalledWith('3');
     expect(findCommonFriends).toHaveBeenCalledWith('2', '3');
     expect(wrapper.find('.people li').text()).toBe('Alice');
   });
 
-  it('pre-selects only the first user from a profile link', async () => {
-    const wrapper = mountView({ a: '1' });
-    await flushPromises();
+  it('pre-selects only the first person from a profile link', async () => {
+    getUser.mockResolvedValue(alice);
 
-    expect(wrapper.find('#common-user-a').element.value).toBe('1');
-    expect(wrapper.find('#common-user-b').element.value).toBe('');
+    const wrapper = await mountView({ a: '1' });
+
+    expect(pickers(wrapper)[0].props('modelValue')).toEqual(alice);
+    expect(pickers(wrapper)[1].props('modelValue')).toBeNull();
     expect(findCommonFriends).not.toHaveBeenCalled();
+  });
+
+  it('leaves a removed user from the URL empty', async () => {
+    getUser.mockRejectedValue({ response: { status: 404 } });
+
+    const wrapper = await mountView({ a: 'gone' });
+
+    expect(pickers(wrapper)[0].props('modelValue')).toBeNull();
   });
 });

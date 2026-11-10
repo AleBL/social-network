@@ -22,11 +22,6 @@ async function createFriendshipDatabase(userInId, userOutId) {
   });
 }
 
-async function getAllUsers() {
-  const result = await User.find({});
-  return result;
-}
-
 async function getUserById(userId) {
   const [user] = await User.find({
     where: { id: userId }
@@ -156,7 +151,6 @@ async function recommendFriends(userId) {
 }
 
 module.exports = {
-  getAllUsers,
   getUserById,
   createUser,
   createFriendship,

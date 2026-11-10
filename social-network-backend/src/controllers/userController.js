@@ -1,5 +1,6 @@
+const { searchUsers } = require('../services/userSearch');
+const { parseUserListQuery } = require('../validation/userValidation');
 const {
-  getAllUsers,
   getUserById,
   createUser,
   createFriendship,
@@ -23,10 +24,20 @@ const handleResponse = (res, statusCode, data, count = null) => {
   res.status(statusCode).json(response);
 };
 
-exports.getAllUsers = async (req, res, next) => {
+// GET /api/users?search=&limit=&offset=: one page plus the total of matches.
+exports.listUsers = async (req, res, next) => {
   try {
-    const data = await getAllUsers();
-    handleResponse(res, 200, data, data.length);
+    const { search, limit, offset } = parseUserListQuery(req.query);
+    const { users, total } = await searchUsers({ search, limit, offset });
+
+    res.status(200).json({
+      status: 'success',
+      data: users,
+      count: users.length,
+      total,
+      limit,
+      offset
+    });
   } catch (err) {
     next(err);
   }

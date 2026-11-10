@@ -79,7 +79,51 @@ describe('API with a real Neo4j', () => {
     it('returns count 0 when there are no users', async () => {
       const list = await api().get('/api/users');
 
-      expect(list.body).toEqual({ status: 'success', data: [], count: 0 });
+      expect(list.body).toEqual({
+        status: 'success',
+        data: [],
+        count: 0,
+        total: 0,
+        limit: 20,
+        offset: 0
+      });
+    });
+
+    it('searches names ignoring case and accents, and emails', async () => {
+      await createUser('Júlia Fernandes', 'julia@example.com');
+      await createUser('João Silva', 'joao@example.com');
+      await createUser('Bruno Cardoso', 'bruno@work.example.com');
+
+      const byName = await api().get('/api/users?search=JULIA');
+      const byAccent = await api().get('/api/users?search=joão');
+      const byEmail = await api().get('/api/users?search=work.example');
+
+      expect(names(byName.body.data)).toEqual(['Júlia Fernandes']);
+      expect(names(byAccent.body.data)).toEqual(['João Silva']);
+      expect(names(byEmail.body.data)).toEqual(['Bruno Cardoso']);
+      expect(byName.body.total).toBe(1);
+    });
+
+    it('paginates sorted by name with the total of matches', async () => {
+      for (const name of ['Dora', 'Ana', 'Caio', 'Bia', 'Eva']) {
+        await createUser(name, `${name.toLowerCase()}@example.com`);
+      }
+
+      const first = await api().get('/api/users?limit=2');
+      const second = await api().get('/api/users?limit=2&offset=2');
+      const last = await api().get('/api/users?limit=2&offset=4');
+
+      expect(first.body.data.map((u) => u.name)).toEqual(['Ana', 'Bia']);
+      expect(second.body.data.map((u) => u.name)).toEqual(['Caio', 'Dora']);
+      expect(last.body.data.map((u) => u.name)).toEqual(['Eva']);
+      expect(first.body.total).toBe(5);
+      expect(last.body.count).toBe(1);
+    });
+
+    it('rejects an invalid page with 400', async () => {
+      const res = await api().get('/api/users?limit=1000');
+
+      expect(res.status).toBe(400);
     });
 
     it('gets a user by id and answers 404 for an unknown id', async () => {

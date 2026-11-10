@@ -55,7 +55,7 @@
           </li>
         </ul>
         <AddFriendForm
-          :candidates="candidates"
+          :exclude-ids="excludeIds"
           :disabled="adding !== null"
           @add="addFriend"
         />
@@ -89,7 +89,7 @@
               type="button"
               class="secondary"
               :disabled="adding !== null"
-              @click="addFriend(person.id)"
+              @click="addFriend(person)"
             >
               {{ adding === person.id ? 'Adding...' : 'Add' }}
             </button>
@@ -117,7 +117,6 @@ import {
   createFriendship,
   getErrorMessage,
   getUser,
-  getUsers,
   listFriends,
   recommendFriends
 } from '../services/api';
@@ -142,7 +141,6 @@ export default {
       user: null,
       friends: [],
       recommendations: [],
-      allUsers: [],
       loading: false,
       notFound: false,
       error: '',
@@ -165,12 +163,9 @@ export default {
     sortedFriends() {
       return [...this.friends].sort(byName);
     },
-    // Everyone except this user and the current friends.
-    candidates() {
-      const friendIds = new Set(this.friends.map((friend) => friend.id));
-      return this.allUsers
-        .filter((other) => other.id !== this.id && !friendIds.has(other.id))
-        .sort(byName);
+    // Never offered in "Add a friend": this user and the current friends.
+    excludeIds() {
+      return [this.id, ...this.friends.map((friend) => friend.id)];
     }
   },
   watch: {
@@ -197,13 +192,12 @@ export default {
       this.showAllRecommendations = false;
 
       try {
-        const [user, friends, recommendations, allUsers] = await Promise.all([
+        const [user, friends, recommendations] = await Promise.all([
           getUser(this.id),
           listFriends(this.id),
-          recommendFriends(this.id),
-          getUsers()
+          recommendFriends(this.id)
         ]);
-        Object.assign(this, { user, friends, recommendations, allUsers });
+        Object.assign(this, { user, friends, recommendations });
       } catch (err) {
         if (err?.response?.status === 404) {
           this.notFound = true;
@@ -214,21 +208,21 @@ export default {
         this.loading = false;
       }
     },
-    async addFriend(friendId) {
-      const friend = this.allUsers.find((other) => other.id === friendId);
-      this.adding = friendId;
+    // friend: a recommendation or the user picked in "Add a friend".
+    async addFriend(friend) {
+      this.adding = friend.id;
       this.actionError = '';
       this.actionMessage = '';
 
       try {
-        await createFriendship(this.id, friendId);
+        await createFriendship(this.id, friend.id);
         const [friends, recommendations] = await Promise.all([
           listFriends(this.id),
           recommendFriends(this.id)
         ]);
         this.friends = friends;
         this.recommendations = recommendations;
-        this.actionMessage = `${friend ? friend.name : 'The user'} is now a friend`;
+        this.actionMessage = `${friend.name} is now a friend`;
       } catch (err) {
         this.actionError = getErrorMessage(err);
       } finally {

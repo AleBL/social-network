@@ -4,7 +4,6 @@ import UserProfileView from '../UserProfileView.vue';
 import {
   createFriendship,
   getUser,
-  getUsers,
   listFriends,
   recommendFriends
 } from '../../services/api';
@@ -13,7 +12,6 @@ vi.mock('../../services/api', async (importOriginal) => ({
   ...(await importOriginal()),
   createFriendship: vi.fn(),
   getUser: vi.fn(),
-  getUsers: vi.fn(),
   listFriends: vi.fn(),
   recommendFriends: vi.fn()
 }));
@@ -39,7 +37,6 @@ describe('UserProfileView', () => {
     recommendFriends.mockResolvedValue([
       { ...dave, mutualFriends: [bob, carol] }
     ]);
-    getUsers.mockResolvedValue([alice, bob, carol, dave]);
   });
 
   afterEach(() => {
@@ -51,7 +48,7 @@ describe('UserProfileView', () => {
     await flushPromises();
 
     expect(wrapper.find('h1').text()).toBe('Alice');
-    expect(texts(wrapper, '[aria-labelledby="friends-title"] li')).toEqual([
+    expect(texts(wrapper, '[aria-labelledby="friends-title"] .person')).toEqual([
       'Bob',
       'Carol'
     ]);
@@ -83,13 +80,27 @@ describe('UserProfileView', () => {
     ).toEqual(['Zoe', 'Erin']);
   });
 
-  it('offers only users who are not the user nor a friend', async () => {
+  it('excludes the user and the friends from "Add a friend"', async () => {
     const wrapper = mountView();
     await flushPromises();
 
-    expect(texts(wrapper, 'option:not([disabled])')).toEqual([
-      'Dave (dave@example.com)'
-    ]);
+    expect(
+      wrapper.findComponent({ name: 'AddFriendForm' }).props('excludeIds')
+    ).toEqual(['1', '3', '2']);
+  });
+
+  it('adds the user picked in "Add a friend"', async () => {
+    createFriendship.mockResolvedValue();
+    const wrapper = mountView();
+    await flushPromises();
+
+    await wrapper
+      .findComponent({ name: 'AddFriendForm' })
+      .vm.$emit('add', dave);
+    await flushPromises();
+
+    expect(createFriendship).toHaveBeenCalledWith('1', '4');
+    expect(wrapper.find('[role="status"]').text()).toBe('Dave is now a friend');
   });
 
   it('adds a recommended friend and refreshes the lists', async () => {
@@ -104,7 +115,7 @@ describe('UserProfileView', () => {
 
     expect(createFriendship).toHaveBeenCalledWith('1', '4');
     expect(wrapper.find('[role="status"]').text()).toBe('Dave is now a friend');
-    expect(texts(wrapper, '[aria-labelledby="friends-title"] li')).toEqual([
+    expect(texts(wrapper, '[aria-labelledby="friends-title"] .person')).toEqual([
       'Bob',
       'Carol',
       'Dave'

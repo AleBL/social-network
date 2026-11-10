@@ -3,7 +3,6 @@ import { RouterLinkStub, flushPromises, mount } from '@vue/test-utils';
 import UserProfileView from '../UserProfileView.vue';
 import {
   getUser,
-  getUsers,
   listFriends,
   recommendFriends
 } from '../../services/api';
@@ -11,7 +10,6 @@ import {
 vi.mock('../../services/api', async (importOriginal) => ({
   ...(await importOriginal()),
   getUser: vi.fn(),
-  getUsers: vi.fn(),
   listFriends: vi.fn(),
   recommendFriends: vi.fn()
 }));
@@ -36,7 +34,6 @@ describe('UserProfileView recommendations preview', () => {
   beforeEach(() => {
     getUser.mockResolvedValue({ id: '1', name: 'Alice', email: 'a@b.co' });
     listFriends.mockResolvedValue([]);
-    getUsers.mockResolvedValue([]);
   });
 
   afterEach(() => {
