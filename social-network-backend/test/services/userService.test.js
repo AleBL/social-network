@@ -107,6 +107,33 @@ describe('User Service', () => {
       expect(User.create).not.toHaveBeenCalled();
     });
 
+    it('should normalize the email before checking and saving', async () => {
+      User.find.mockResolvedValue([]);
+      User.create.mockResolvedValue([]);
+
+      await userService.createUser({
+        name: ' Alice ',
+        email: ' Alice@Example.COM '
+      });
+
+      expect(User.find).toHaveBeenCalledWith({
+        where: { email: 'alice@example.com' }
+      });
+      expect(User.create).toHaveBeenCalledWith({
+        input: [
+          expect.objectContaining({ name: 'Alice', email: 'alice@example.com' })
+        ]
+      });
+    });
+
+    it('should reject invalid input with status 400 without querying', async () => {
+      await expect(
+        userService.createUser({ name: 'Alice', email: 'not-an-email' })
+      ).rejects.toMatchObject({ statusCode: 400 });
+      expect(User.find).not.toHaveBeenCalled();
+      expect(User.create).not.toHaveBeenCalled();
+    });
+
     it('should throw an error if user creation fails', async () => {
       const userData = { name: 'Alice', email: 'alice@example.com' };
       User.find.mockResolvedValue([]);
@@ -124,13 +151,48 @@ describe('User Service', () => {
       const user1 = { id: '1', name: 'Alice' };
       const user2 = { id: '2', name: 'Bob' };
 
-      User.find.mockResolvedValueOnce([user1]).mockResolvedValueOnce([user2]);
+      User.find
+        .mockResolvedValueOnce([user1])
+        .mockResolvedValueOnce([user2])
+        .mockResolvedValueOnce([]); // not friends yet
       User.update.mockResolvedValue();
 
       await userService.createFriendship('1', '2');
 
-      expect(User.find).toHaveBeenCalledTimes(2);
+      expect(User.find).toHaveBeenCalledTimes(3);
+      expect(User.find).toHaveBeenLastCalledWith({
+        where: { id: '1', friends_SOME: { id: '2' } }
+      });
       expect(User.update).toHaveBeenCalledTimes(2);
+    });
+
+    it('should reject a friendship with oneself with status 400', async () => {
+      await expect(
+        userService.createFriendship('1', '1')
+      ).rejects.toMatchObject({
+        message: 'a user cannot be friends with themselves',
+        statusCode: 400
+      });
+      expect(User.find).not.toHaveBeenCalled();
+      expect(User.update).not.toHaveBeenCalled();
+    });
+
+    it('should reject an existing friendship with status 409', async () => {
+      const user1 = { id: '1', name: 'Alice' };
+      const user2 = { id: '2', name: 'Bob' };
+
+      User.find
+        .mockResolvedValueOnce([user1])
+        .mockResolvedValueOnce([user2])
+        .mockResolvedValueOnce([user1]); // already friends
+
+      await expect(
+        userService.createFriendship('1', '2')
+      ).rejects.toMatchObject({
+        message: 'Users 1 and 2 are already friends',
+        statusCode: 409
+      });
+      expect(User.update).not.toHaveBeenCalled();
     });
 
     it('should throw an error if one of the users does not exist', async () => {

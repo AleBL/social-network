@@ -63,7 +63,7 @@ exports.createFriendship = async (req, res) => {
     await createFriendship(userId1, userId2);
     handleResponse(res, 201, 'Friendship created');
   } catch (err) {
-    handleError(res, 500, err);
+    handleError(res, err.statusCode || 500, err);
   }
 };
 
