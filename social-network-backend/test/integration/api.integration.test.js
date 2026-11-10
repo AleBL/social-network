@@ -200,6 +200,27 @@ describe('API with a real Neo4j', () => {
       expect(res.status).toBe(400);
     });
 
+    it('suggests the non-friend pairs that share friends, once each', async () => {
+      // alice - bob, alice - carol, bob - dave, carol - dave:
+      // alice and dave share bob and carol; bob and carol share alice and dave.
+      const res = await api().get('/api/graph/suggestions');
+
+      expect(res.status).toBe(200);
+      const pairs = res.body.data
+        .map(({ a, b, mutualFriends }) =>
+          [`${a.name}+${b.name}`, names(mutualFriends).join(',')].join(':')
+        )
+        .sort();
+      expect(pairs).toEqual(['Alice+Dave:Bob,Carol', 'Bob+Carol:Alice,Dave']);
+      expect(res.body.count).toBe(2);
+    });
+
+    it('rejects an invalid suggestions limit with 400', async () => {
+      const res = await api().get('/api/graph/suggestions?limit=500');
+
+      expect(res.status).toBe(400);
+    });
+
     it('returns the graph with each friendship once and no emails', async () => {
       const res = await api().get('/api/graph');
 
