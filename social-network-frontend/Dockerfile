@@ -1,4 +1,4 @@
-FROM node:22.12.0
+FROM node:24.22.2
 
 WORKDIR /app
 
@@ -11,6 +11,6 @@ RUN yarn install
 
 COPY . .
 
-# Development image: docker-compose runs the dev server (yarn start).
+# Development image: docker-compose runs the Vite dev server (yarn dev).
 # The production build (yarn build) runs on the static host (see render.yaml).
 EXPOSE 8080

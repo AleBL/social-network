@@ -59,7 +59,7 @@ services:
         condition: service_started
     networks:
       - app-network
-    command: ["yarn", "start"]
+    command: ["yarn", "dev"]
     restart: unless-stopped
 
 networks:

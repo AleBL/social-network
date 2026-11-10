@@ -13,7 +13,7 @@ Welcome to the **Social Network Project**! 🚀 This is a modern social networki
 The project is powered by:
 
 - **Backend**: Node.js & Express.js API.
-- **Frontend**: Vue.js-based user interface.
+- **Frontend**: Vue.js 3 user interface built with Vite.
 - **Database**: Neo4j for powerful graph-based relationships.
 
 To make the setup and deployment effortless, the application is fully containerized using **Docker** and **Docker Compose**.
@@ -34,11 +34,9 @@ To make the setup and deployment effortless, the application is fully containeri
 Before diving in, ensure you have the following tools installed:
 
 - 🐳 **Docker** & **Docker Compose**
-- 🌐 **Node.js** 22.12.0 (pinned in [`.nvmrc`](.nvmrc), run `nvm use`, or with asdf `asdf install nodejs 22.12.0`)
+- 🌐 **Node.js** 24.22.2 LTS (pinned in [`.nvmrc`](.nvmrc), run `nvm use`, or with asdf `asdf install nodejs 24.22.2`)
 - 📦 **Yarn** 1.22.22 (pinned via `packageManager`, run `corepack enable` once and Corepack picks the right version)
 - 🧠 **Neo4j** database (if running locally without Docker)
-
-> The frontend (Vue CLI 5) does not install on Node 24+, so stick to Node 22.
 
 ---
 
@@ -109,10 +107,15 @@ If you prefer to run the services manually, follow the steps below.
    yarn install
    ```
 
-3. Start the frontend development server:
+3. Start the frontend development server (http://localhost:8080):
    ```bash
-   yarn start
+   yarn dev
    ```
+
+4. Useful scripts:
+   - `yarn test`: Run unit tests using **Vitest**.
+   - `yarn lint`: Perform code linting using **ESLint**.
+   - `yarn build`: Production build into `dist/`.
 
 ---
 
@@ -197,6 +200,8 @@ Explore the REST API endpoints available for managing users, friendships, and re
 
 ### **Frontend**
 - 🌟 **Vue.js**: Modern frontend framework.
+- ⚡ **Vite**: Dev server and build tool.
+- 🧪 **Vitest**: Testing framework.
 
 ### **Database**
 - 🧠 **Neo4j**: Graph database for handling relationships.

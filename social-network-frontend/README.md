@@ -1,24 +1,16 @@
-# frontend
+# Social Network Frontend
 
-## Project setup
-```
-npm install
-```
+Vue 3 app built with [Vite](https://vite.dev), tested with [Vitest](https://vitest.dev).
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Requires Node.js from the repo [`.nvmrc`](../.nvmrc) and Yarn 1 (`corepack enable`).
 
-### Compiles and minifies for production
-```
-npm run build
-```
+| Command | What it does |
+|---|---|
+| `yarn install` | Install dependencies |
+| `yarn dev` | Dev server with hot reload on http://localhost:8080 |
+| `yarn build` | Production build into `dist/` |
+| `yarn preview` | Serve the production build locally |
+| `yarn lint` | Lint with ESLint (`yarn lint:fix` to auto-fix) |
+| `yarn test` | Run unit tests once (`yarn test:watch` to watch) |
 
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Configuration: [`vite.config.js`](vite.config.js) (dev server, aliases, Vitest) and [`eslint.config.js`](eslint.config.js).
