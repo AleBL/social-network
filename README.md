@@ -148,6 +148,29 @@ Free tier caveats: the Render web service sleeps after ~15 minutes without traff
 
 ---
 
+## 🌱 **Demo Data**
+
+A seed script fills the database with a realistic network for demos: 40 people in four circles of friends (work, university, neighborhood, sports club) connected by a few people in common. Friend counts vary like a real network (one person with 15 friends, others with 9, 7, 4, 2, 1) and 4 people have no friends yet.
+
+```bash
+cd social-network-backend
+yarn seed           # local Neo4j (localhost or the compose "neo4j" host)
+yarn seed --yes     # any other database, e.g. AuraDB: --yes confirms the target
+yarn seed:reset     # removes only the seed users (add --yes for AuraDB)
+```
+
+- Credentials come from `NEO4J_URI`, `NEO4J_USER` and `NEO4J_PASSWORD`, read from the environment (which wins) or from the root `.env`. For AuraDB, export them in the shell instead of editing `.env`, which docker compose uses for the local Neo4j. Read the password without echoing it so it stays out of the shell history:
+
+  ```bash
+  export NEO4J_URI=neo4j+s://<instance-id>.databases.neo4j.io NEO4J_USER=<instance-id>
+  read -rs "NEO4J_PASSWORD?Aura password: " && export NEO4J_PASSWORD   # zsh (bash: read -rsp "Aura password: " NEO4J_PASSWORD)
+  yarn seed --yes
+  ```
+- Seed users have emails ending in `@seed.example.com`. Running the script again creates nothing new, and users created through the app are never changed. `seed:reset` also deletes friendships between seed users and your own users.
+- It writes straight to the database, so the API rate limit does not apply.
+
+---
+
 ## 🔄 **API Routes**
 
 Explore the REST API endpoints available for managing users, friendships, and recommendations. For an easy way to test the API, click the button below to import the Postman collection. 👇
