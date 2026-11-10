@@ -18,17 +18,19 @@ const mockResponse = () => {
   return res;
 };
 
+const mockRequest = (params = {}, body = {}) => ({
+  params,
+  body
+});
+
 describe('User Controller', () => {
   let res;
+  let next;
 
   beforeEach(() => {
     res = mockResponse();
+    next = jest.fn();
     jest.clearAllMocks();
-  });
-
-  const mockRequest = (params = {}, body = {}) => ({
-    params,
-    body
   });
 
   describe('getAllUsers', () => {
@@ -39,7 +41,7 @@ describe('User Controller', () => {
       ];
       userService.getAllUsers.mockResolvedValue(mockData);
 
-      await userController.getAllUsers({}, res);
+      await userController.getAllUsers({}, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -49,16 +51,15 @@ describe('User Controller', () => {
       });
     });
 
-    it('should handle errors', async () => {
-      const mockError = new Error('Database error');
-      userService.getAllUsers.mockRejectedValue(mockError);
+    it('should include count 0 for an empty list', async () => {
+      userService.getAllUsers.mockResolvedValue([]);
 
-      await userController.getAllUsers({}, res);
+      await userController.getAllUsers({}, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: mockError.message
+        status: 'success',
+        count: 0,
+        data: []
       });
     });
   });
@@ -66,10 +67,10 @@ describe('User Controller', () => {
   describe('getUserById', () => {
     it('should return user by ID', async () => {
       const mockData = { id: 1, name: 'Alice' };
-      const req = { params: { userId: '1' } };
+      const req = mockRequest({ userId: '1' });
       userService.getUserById.mockResolvedValue(mockData);
 
-      await userController.getUserById(req, res);
+      await userController.getUserById(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -77,64 +78,20 @@ describe('User Controller', () => {
         data: mockData
       });
     });
-
-    it('should handle user not found', async () => {
-      const mockError = new Error('User not found');
-      const req = { params: { userId: '1' } };
-      userService.getUserById.mockRejectedValue(mockError);
-
-      await userController.getUserById(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: mockError.message
-      });
-    });
   });
 
   describe('createUser', () => {
     it('should create a new user', async () => {
-      const req = { body: { name: 'Alice' } };
+      const req = mockRequest({}, { name: 'Alice', email: 'a@b.co' });
       userService.createUser.mockResolvedValue();
 
-      await userController.createUser(req, res);
+      await userController.createUser(req, res, next);
 
+      expect(userService.createUser).toHaveBeenCalledWith(req.body);
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         data: 'User created'
-      });
-    });
-
-    it('should handle creation errors', async () => {
-      const mockError = new Error('Creation failed');
-      const req = { body: { name: 'Alice' } };
-      userService.createUser.mockRejectedValue(mockError);
-
-      await userController.createUser(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: mockError.message
-      });
-    });
-
-    it('should return 409 for a duplicate email', async () => {
-      const mockError = new Error(
-        'User with email alice@example.com already exists'
-      );
-      mockError.statusCode = 409;
-      const req = { body: { name: 'Alice', email: 'alice@example.com' } };
-      userService.createUser.mockRejectedValue(mockError);
-
-      await userController.createUser(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(409);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: mockError.message
       });
     });
   });
@@ -144,7 +101,7 @@ describe('User Controller', () => {
       const req = mockRequest({}, { userId1: '1', userId2: '2' });
       userService.createFriendship.mockResolvedValue();
 
-      await userController.createFriendship(req, res);
+      await userController.createFriendship(req, res, next);
 
       expect(userService.createFriendship).toHaveBeenCalledWith('1', '2');
       expect(res.status).toHaveBeenCalledWith(201);
@@ -154,34 +111,15 @@ describe('User Controller', () => {
       });
     });
 
-    it('should handle errors when creating a friendship', async () => {
-      const req = mockRequest({}, { userId1: '1', userId2: '2' });
-      userService.createFriendship.mockRejectedValue(
-        new Error('Database error')
+    it('should not crash when the request has no body', async () => {
+      userService.createFriendship.mockResolvedValue();
+
+      await userController.createFriendship({ params: {} }, res, next);
+
+      expect(userService.createFriendship).toHaveBeenCalledWith(
+        undefined,
+        undefined
       );
-
-      await userController.createFriendship(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: 'Database error'
-      });
-    });
-
-    it('should use the status code carried by the error', async () => {
-      const mockError = new Error('a user cannot be friends with themselves');
-      mockError.statusCode = 400;
-      const req = mockRequest({}, { userId1: '1', userId2: '1' });
-      userService.createFriendship.mockRejectedValue(mockError);
-
-      await userController.createFriendship(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: mockError.message
-      });
     });
   });
 
@@ -191,13 +129,10 @@ describe('User Controller', () => {
         { id: '2', name: 'Bob' },
         { id: '3', name: 'Alice' }
       ];
-      const req = mockRequest({ userId: '1' });
-
       userService.listFriends.mockResolvedValue(mockFriends);
 
-      await userController.listFriends(req, res);
+      await userController.listFriends(mockRequest({ userId: '1' }), res, next);
 
-      // toHaveBeenCalledTimes
       expect(userService.listFriends).toHaveBeenCalledWith('1');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -206,31 +141,18 @@ describe('User Controller', () => {
         data: mockFriends
       });
     });
-
-    it('should handle errors when listing friends', async () => {
-      const req = mockRequest({ userId: '1' });
-      userService.listFriends.mockRejectedValue(
-        new Error('Failed to list friends')
-      );
-
-      await userController.listFriends(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: 'Failed to list friends'
-      });
-    });
   });
 
   describe('findCommonFriends', () => {
     it('should return common friends between two users', async () => {
       const mockCommonFriends = [{ id: '3', name: 'Charlie' }];
-      const req = mockRequest({ userId1: '1', userId2: '2' });
-
       userService.findCommonFriends.mockResolvedValue(mockCommonFriends);
 
-      await userController.findCommonFriends(req, res);
+      await userController.findCommonFriends(
+        mockRequest({ userId1: '1', userId2: '2' }),
+        res,
+        next
+      );
 
       expect(userService.findCommonFriends).toHaveBeenCalledWith('1', '2');
       expect(res.status).toHaveBeenCalledWith(200);
@@ -240,31 +162,18 @@ describe('User Controller', () => {
         data: mockCommonFriends
       });
     });
-
-    it('should handle errors when finding common friends', async () => {
-      const req = mockRequest({ userId1: '1', userId2: '2' });
-      userService.findCommonFriends.mockRejectedValue(
-        new Error('Failed to find common friends')
-      );
-
-      await userController.findCommonFriends(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: 'Failed to find common friends'
-      });
-    });
   });
 
   describe('recommendFriends', () => {
     it('should return friend recommendations', async () => {
       const mockRecommendations = [{ id: '4', name: 'Dave' }];
-      const req = mockRequest({ userId: '1' });
-
       userService.recommendFriends.mockResolvedValue(mockRecommendations);
 
-      await userController.recommendFriends(req, res);
+      await userController.recommendFriends(
+        mockRequest({ userId: '1' }),
+        res,
+        next
+      );
 
       expect(userService.recommendFriends).toHaveBeenCalledWith('1');
       expect(res.status).toHaveBeenCalledWith(200);
@@ -274,63 +183,34 @@ describe('User Controller', () => {
         data: mockRecommendations
       });
     });
-
-    it('should handle errors when recommending friends', async () => {
-      const req = mockRequest({ userId: '1' });
-      userService.recommendFriends.mockRejectedValue(
-        new Error('Failed to recommend friends')
-      );
-
-      await userController.recommendFriends(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: 'Failed to recommend friends'
-      });
-    });
   });
 
-  describe('Error handling in user controller', () => {
-    const unexpectErrorMessage = 'An unexpected error occurred';
+  // Status codes and messages are decided by the errorHandler middleware.
+  describe('error forwarding', () => {
+    it.each([
+      ['getAllUsers', 'getAllUsers', {}],
+      ['getUserById', 'getUserById', mockRequest({ userId: '1' })],
+      ['createUser', 'createUser', mockRequest({}, { name: 'Alice' })],
+      [
+        'createFriendship',
+        'createFriendship',
+        mockRequest({}, { userId1: '1', userId2: '2' })
+      ],
+      ['listFriends', 'listFriends', mockRequest({ userId: '1' })],
+      [
+        'findCommonFriends',
+        'findCommonFriends',
+        mockRequest({ userId1: '1', userId2: '2' })
+      ],
+      ['recommendFriends', 'recommendFriends', mockRequest({ userId: '1' })]
+    ])('%s passes service errors to next', async (handler, serviceFn, req) => {
+      const error = new Error('Service failure');
+      userService[serviceFn].mockRejectedValue(error);
 
-    it('should return a specific error message if provided', async () => {
-      const specificErrorMessage = 'Specific error';
-      const mockError = new Error(specificErrorMessage);
-      userService.getAllUsers.mockRejectedValue(mockError);
+      await userController[handler](req, res, next);
 
-      await userController.getAllUsers({}, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: specificErrorMessage
-      });
-    });
-
-    it('should return the default error message if none is provided', async () => {
-      const mockError = {};
-      userService.getAllUsers.mockRejectedValue(mockError);
-
-      await userController.getAllUsers({}, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: unexpectErrorMessage
-      });
-    });
-
-    it('should return the default error message if the error is undefined', async () => {
-      userService.getAllUsers.mockRejectedValue(undefined);
-
-      await userController.getAllUsers({}, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        error: unexpectErrorMessage
-      });
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
     });
   });
 });

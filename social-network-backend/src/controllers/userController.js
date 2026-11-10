@@ -8,91 +8,86 @@ const {
   recommendFriends
 } = require('../services/userService');
 
+// Errors are forwarded with next(err) to the central errorHandler middleware.
+
 const handleResponse = (res, statusCode, data, count = null) => {
   const response = {
     status: 'success',
     data
   };
 
-  if (count) {
+  if (count !== null) {
     response.count = count;
   }
 
   res.status(statusCode).json(response);
 };
 
-const handleError = (res, statusCode, error) => {
-  res.status(statusCode).json({
-    status: 'error',
-    error: error?.message || 'An unexpected error occurred'
-  });
-};
-
-exports.getAllUsers = async (req, res) => {
+exports.getAllUsers = async (req, res, next) => {
   try {
     const data = await getAllUsers();
     handleResponse(res, 200, data, data.length);
   } catch (err) {
-    handleError(res, 500, err);
+    next(err);
   }
 };
 
-exports.getUserById = async (req, res) => {
+exports.getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const data = await getUserById(userId);
     handleResponse(res, 200, data);
   } catch (err) {
-    handleError(res, 404, err);
+    next(err);
   }
 };
 
-exports.createUser = async (req, res) => {
+exports.createUser = async (req, res, next) => {
   try {
     const user = req.body;
     await createUser(user);
     handleResponse(res, 201, 'User created');
   } catch (err) {
-    handleError(res, err.statusCode || 500, err);
+    next(err);
   }
 };
 
-exports.createFriendship = async (req, res) => {
+exports.createFriendship = async (req, res, next) => {
   try {
-    const { userId1, userId2 } = req.body;
+    const { userId1, userId2 } = req.body || {};
     await createFriendship(userId1, userId2);
     handleResponse(res, 201, 'Friendship created');
   } catch (err) {
-    handleError(res, err.statusCode || 500, err);
+    next(err);
   }
 };
 
-exports.listFriends = async (req, res) => {
+exports.listFriends = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const data = await listFriends(userId);
     handleResponse(res, 200, data, data.length);
   } catch (err) {
-    handleError(res, 500, err);
+    next(err);
   }
 };
 
-exports.findCommonFriends = async (req, res) => {
+exports.findCommonFriends = async (req, res, next) => {
   try {
     const { userId1, userId2 } = req.params;
     const data = await findCommonFriends(userId1, userId2);
     handleResponse(res, 200, data, data.length);
   } catch (err) {
-    handleError(res, 500, err);
+    next(err);
   }
 };
 
-exports.recommendFriends = async (req, res) => {
+exports.recommendFriends = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const data = await recommendFriends(userId);
     handleResponse(res, 200, data, data.length);
   } catch (err) {
-    handleError(res, 500, err);
+    next(err);
   }
 };
