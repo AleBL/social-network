@@ -144,6 +144,16 @@ Explore the REST API endpoints available for managing users, friendships, and re
 
 [<img src="https://run.pstmn.io/button.svg" alt="Run in Postman" style="width: 160px;">](https://god.gw.postman.com/run-collection/8243464-dfed08d9-f93d-4f02-bc66-4e5c84d4d0b3?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D8243464-dfed08d9-f93d-4f02-bc66-4e5c84d4d0b3%26entityType%3Dcollection%26workspaceId%3Daa682c41-5450-4149-beca-ae2a45c19f0d)
 
+### **Error Responses** ⚠️
+
+Every error uses the same body: `{ "status": "error", "error": "<message>" }`.
+
+- `400`: invalid input or malformed JSON body.
+- `404`: unknown route, or a `userId` that does not exist (any route that receives one).
+- `409`: conflict (email already registered, users already friends).
+- `503`: database unavailable, for example AuraDB Free paused. Requests fail after about 15 seconds instead of hanging.
+- `500`: unexpected error. Details are only logged on the server, never returned.
+
 ### **User Routes** 🧑‍🤝‍🧑
 
 - **`GET /api/users/`**
@@ -170,7 +180,7 @@ Explore the REST API endpoints available for managing users, friendships, and re
   **Body Parameters**:
   - `userId1` (string, required): ID of the first user.
   - `userId2` (string, required, different from `userId1`): ID of the second user.
-  **Errors**: `400` missing ids or same id twice, `409` users are already friends, `500` a user does not exist (becomes `404` in a later change).
+  **Errors**: `400` missing ids or same id twice, `404` a user does not exist, `409` users are already friends.
 
 - **`GET /api/users/listFriends/:userId`**
   Lists all friends of a user.
