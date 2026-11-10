@@ -9,7 +9,7 @@
 
     <div v-else-if="error" class="load-error" role="alert">
       <p>{{ error }}</p>
-      <button type="button" @click="load">Try again</button>
+      <button type="button" class="secondary" @click="load">Try again</button>
     </div>
 
     <p v-else-if="suggestions.length === 0" class="empty">
@@ -30,22 +30,41 @@
           :key="pairKey(suggestion)"
           class="pair"
         >
-          <div class="pair-info">
-            <span class="pair-names">
-              <RouterLink :to="profileLink(suggestion.a)">{{
-                suggestion.a.name
-              }}</RouterLink>
-              and
-              <RouterLink :to="profileLink(suggestion.b)">{{
-                suggestion.b.name
-              }}</RouterLink>
+          <div class="pair-main">
+            <span class="avatars">
+              <UserAvatar
+                :id="suggestion.a.id"
+                :name="suggestion.a.name"
+                size="sm"
+              />
+              <UserAvatar
+                :id="suggestion.b.id"
+                :name="suggestion.b.name"
+                size="sm"
+              />
             </span>
-            <span class="mutual">{{
-              describeMutualFriends(suggestion.mutualFriends)
-            }}</span>
+            <div class="pair-info">
+              <span class="pair-names">
+                <RouterLink
+                  :to="profileLink(suggestion.a)"
+                  class="person-link"
+                  >{{ suggestion.a.name }}</RouterLink
+                >
+                and
+                <RouterLink
+                  :to="profileLink(suggestion.b)"
+                  class="person-link"
+                  >{{ suggestion.b.name }}</RouterLink
+                >
+              </span>
+              <span class="mutual">{{
+                describeMutualFriends(suggestion.mutualFriends)
+              }}</span>
+            </div>
           </div>
           <button
             type="button"
+            class="secondary"
             :disabled="connecting !== null"
             @click="connect(suggestion)"
           >
@@ -59,6 +78,7 @@
 
 <script>
 import LoadingState from './LoadingState.vue';
+import UserAvatar from './UserAvatar.vue';
 import {
   createFriendship,
   getErrorMessage,
@@ -68,7 +88,7 @@ import { describeMutualFriends } from '../utils/mutualFriends';
 
 export default {
   name: 'SuggestedConnections',
-  components: { LoadingState },
+  components: { LoadingState, UserAvatar },
   props: {
     limit: {
       type: Number,
@@ -166,6 +186,24 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+.pair-main {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* Two overlapping avatars, like a "connection" between them. */
+.avatars {
+  display: inline-flex;
+  flex: none;
+}
+
+.avatars > :last-child {
+  margin-left: -0.6rem;
+  box-shadow: 0 0 0 2px var(--color-surface);
 }
 
 .pair-info {
