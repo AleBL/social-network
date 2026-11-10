@@ -90,8 +90,18 @@ If you prefer to run the services manually, follow the steps below.
    ```
 
 4. Useful scripts:
-   - `yarn test`: Run tests using **Jest**.
+   - `yarn test`: Run unit tests using **Jest** (no database needed).
+   - `yarn test:integration`: Run API tests against a real Neo4j (see below).
    - `yarn lint`: Perform code linting using **ESLint**.
+
+5. Integration tests (they run in CI on every pull request):
+
+   > ⚠️ They **delete all data** in the target database. They refuse to run unless `NEO4J_URI` points to `localhost`, `127.0.0.1` or the compose `neo4j` host, so they can never touch AuraDB.
+
+   ```bash
+   docker compose up -d neo4j   # wipes the local dev data when the tests run
+   NEO4J_URI=bolt://localhost:7687 NEO4J_USER=neo4j NEO4J_PASSWORD=<password from .env> yarn test:integration
+   ```
 
 ---
 
