@@ -14,9 +14,13 @@ export async function ping() {
   return data;
 }
 
-export async function getUsers() {
-  const { data } = await api.get('/api/users');
-  return data.data;
+// One page of users sorted by name, optionally filtered by name or email
+// (case and accents ignored by the backend). Returns { users, total }.
+export async function searchUsers({ search = '', limit = 20, offset = 0 } = {}) {
+  const { data } = await api.get('/api/users', {
+    params: { search: search || undefined, limit, offset }
+  });
+  return { users: data.data, total: data.total };
 }
 
 // The API answers 201 without the created user, so callers reload the list.

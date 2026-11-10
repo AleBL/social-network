@@ -1,56 +1,69 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RouterLinkStub, flushPromises, mount } from '@vue/test-utils';
-import UsersView from '../UsersView.vue';
-import { getUsers } from '../../services/api';
+import UsersView, { PAGE_SIZE } from '../UsersView.vue';
+import { searchUsers } from '../../services/api';
 
 vi.mock('../../services/api', async (importOriginal) => ({
   ...(await importOriginal()),
-  getUsers: vi.fn()
+  searchUsers: vi.fn()
 }));
 
-const mountView = () =>
-  mount(UsersView, {
+const page = (users, total = users.length) => ({ users, total });
+
+const mountView = async () => {
+  const wrapper = mount(UsersView, {
     global: { stubs: { UserForm: true, RouterLink: RouterLinkStub } }
   });
+  await flushPromises();
+  return wrapper;
+};
+
+const names = (wrapper) =>
+  wrapper.findAll('.user-name').map((el) => el.text());
 
 describe('UsersView', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('lists users sorted by name with the count', async () => {
-    getUsers.mockResolvedValue([
-      { id: '2', name: 'Bob', email: 'bob@example.com' },
-      { id: '1', name: 'Alice', email: 'alice@example.com' }
-    ]);
+  it('loads the first page from the backend, already sorted by name', async () => {
+    searchUsers.mockResolvedValue(
+      page([
+        { id: '1', name: 'Alice', email: 'alice@example.com' },
+        { id: '2', name: 'Bob', email: 'bob@example.com' }
+      ])
+    );
 
-    const wrapper = mountView();
-    await flushPromises();
+    const wrapper = await mountView();
 
-    const names = wrapper.findAll('.user-name').map((el) => el.text());
-    expect(names).toEqual(['Alice', 'Bob']);
+    expect(searchUsers).toHaveBeenCalledWith({
+      search: '',
+      limit: PAGE_SIZE,
+      offset: 0
+    });
+    expect(names(wrapper)).toEqual(['Alice', 'Bob']);
     expect(wrapper.find('.count').text()).toBe('(2)');
+    expect(wrapper.find('.load-more').exists()).toBe(false);
   });
 
   it('shows the empty state', async () => {
-    getUsers.mockResolvedValue([]);
+    searchUsers.mockResolvedValue(page([]));
 
-    const wrapper = mountView();
-    await flushPromises();
+    const wrapper = await mountView();
 
-    expect(wrapper.find('.empty').exists()).toBe(true);
+    expect(wrapper.find('.empty').text()).toBe(
+      'No users yet. Add the first one.'
+    );
   });
 
   it('shows the error and retries on demand', async () => {
-    getUsers
+    searchUsers
       .mockRejectedValueOnce({
         response: { data: { error: 'Database unavailable, please try again later' } }
       })
-      .mockResolvedValueOnce([{ id: '1', name: 'Alice', email: 'a@b.co' }]);
+      .mockResolvedValueOnce(page([{ id: '1', name: 'Alice', email: 'a@b.co' }]));
 
-    const wrapper = mountView();
-    await flushPromises();
-
+    const wrapper = await mountView();
     expect(wrapper.find('[role="alert"]').text()).toContain(
       'Database unavailable, please try again later'
     );
@@ -58,22 +71,19 @@ describe('UsersView', () => {
     await wrapper.find('.load-error button').trigger('click');
     await flushPromises();
 
-    expect(getUsers).toHaveBeenCalledTimes(2);
-    expect(wrapper.find('.user-name').text()).toBe('Alice');
+    expect(names(wrapper)).toEqual(['Alice']);
   });
 
-  it('reloads the list after a user is created', async () => {
-    getUsers
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ id: '1', name: 'Alice', email: 'a@b.co' }]);
+  it('reloads the first page after a user is created', async () => {
+    searchUsers
+      .mockResolvedValueOnce(page([]))
+      .mockResolvedValueOnce(page([{ id: '1', name: 'Alice', email: 'a@b.co' }]));
 
-    const wrapper = mountView();
-    await flushPromises();
-
+    const wrapper = await mountView();
     wrapper.findComponent({ name: 'UserForm' }).vm.$emit('created');
     await flushPromises();
 
-    expect(getUsers).toHaveBeenCalledTimes(2);
-    expect(wrapper.find('.user-name').text()).toBe('Alice');
+    expect(searchUsers).toHaveBeenCalledTimes(2);
+    expect(names(wrapper)).toEqual(['Alice']);
   });
 });

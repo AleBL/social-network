@@ -19,7 +19,7 @@
             <span v-if="loaded && !error" class="count">({{ countLabel }})</span>
           </h2>
           <input
-            v-if="loaded && users.length > 0"
+            v-if="loaded"
             v-model="query"
             type="search"
             class="search"
@@ -37,28 +37,40 @@
           </button>
         </div>
 
-        <p v-else-if="users.length === 0" class="empty">
+        <p v-else-if="users.length === 0 && !searchTerm" class="empty">
           No users yet. Add the first one.
         </p>
 
-        <p v-else-if="filteredUsers.length === 0" class="empty">
-          No users match "{{ query }}".
+        <p v-else-if="users.length === 0" class="empty">
+          No users match "{{ searchTerm }}".
         </p>
 
-        <ul v-else class="user-grid">
-          <li v-for="user in filteredUsers" :key="user.id">
-            <RouterLink
-              :to="{ name: 'user', params: { id: user.id } }"
-              class="card user-card"
-            >
-              <UserAvatar :id="user.id" :name="user.name" />
-              <span class="user-text">
-                <span class="user-name">{{ user.name }}</span>
-                <span class="user-email">{{ user.email }}</span>
-              </span>
-            </RouterLink>
-          </li>
-        </ul>
+        <template v-else>
+          <ul class="user-grid" :aria-busy="String(loading)">
+            <li v-for="user in users" :key="user.id">
+              <RouterLink
+                :to="{ name: 'user', params: { id: user.id } }"
+                class="card user-card"
+              >
+                <UserAvatar :id="user.id" :name="user.name" />
+                <span class="user-text">
+                  <span class="user-name">{{ user.name }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                </span>
+              </RouterLink>
+            </li>
+          </ul>
+
+          <button
+            v-if="remaining > 0"
+            type="button"
+            class="secondary load-more"
+            :disabled="loadingMore"
+            @click="loadMore"
+          >
+            {{ loadingMore ? 'Loading...' : `Load more (${remaining} left)` }}
+          </button>
+        </template>
       </div>
     </div>
   </section>
@@ -68,63 +80,101 @@
 import LoadingState from '../components/LoadingState.vue';
 import UserAvatar from '../components/UserAvatar.vue';
 import UserForm from '../components/UserForm.vue';
-import { getErrorMessage, getUsers } from '../services/api';
+import { getErrorMessage, searchUsers } from '../services/api';
 
-// "Júlia" matches "julia": case and accents are ignored when searching.
-const normalize = (text) =>
-  text
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase();
+export const PAGE_SIZE = 24;
+export const SEARCH_DELAY_MS = 300;
 
+// Server-side search and pagination: the page never loads every user.
 export default {
   name: 'UsersView',
   components: { LoadingState, UserAvatar, UserForm },
   data() {
     return {
       users: [],
+      total: 0,
+      query: '',
       loading: false,
+      loadingMore: false,
       // After the first successful load, reloads keep the list on screen.
       loaded: false,
       error: '',
-      query: ''
+      timer: null,
+      lastRequest: 0
     };
   },
   computed: {
-    sortedUsers() {
-      return [...this.users].sort((a, b) => a.name.localeCompare(b.name));
+    searchTerm() {
+      return this.query.trim();
     },
-    filteredUsers() {
-      const query = normalize(this.query.trim());
-
-      if (!query) {
-        return this.sortedUsers;
-      }
-      return this.sortedUsers.filter((user) =>
-        normalize(`${user.name} ${user.email}`).includes(query)
-      );
+    remaining() {
+      return this.total - this.users.length;
     },
     countLabel() {
-      return this.query.trim()
-        ? `${this.filteredUsers.length} of ${this.users.length}`
-        : `${this.users.length}`;
+      return this.searchTerm ? `${this.total} found` : `${this.total}`;
+    }
+  },
+  watch: {
+    // Waits for a pause in typing before asking the backend.
+    query() {
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.loadUsers(), SEARCH_DELAY_MS);
     }
   },
   mounted() {
     this.loadUsers();
   },
+  beforeUnmount() {
+    clearTimeout(this.timer);
+  },
   methods: {
+    // First page for the current search (also after creating a user).
     async loadUsers() {
+      const request = ++this.lastRequest;
       this.loading = true;
       this.error = '';
 
       try {
-        this.users = await getUsers();
-        this.loaded = true;
+        const { users, total } = await searchUsers({
+          search: this.searchTerm,
+          limit: PAGE_SIZE,
+          offset: 0
+        });
+        // An older, slower answer must not replace a newer one.
+        if (request !== this.lastRequest) {
+          return;
+        }
+        Object.assign(this, { users, total, loaded: true });
+      } catch (err) {
+        if (request === this.lastRequest) {
+          this.error = getErrorMessage(err);
+        }
+      } finally {
+        if (request === this.lastRequest) {
+          this.loading = false;
+        }
+      }
+    },
+    async loadMore() {
+      const request = this.lastRequest;
+      this.loadingMore = true;
+
+      try {
+        const { users, total } = await searchUsers({
+          search: this.searchTerm,
+          limit: PAGE_SIZE,
+          offset: this.users.length
+        });
+        // The search changed meanwhile: this page belongs to the old one.
+        if (request !== this.lastRequest) {
+          return;
+        }
+        this.users = [...this.users, ...users];
+        this.total = total;
       } catch (err) {
         this.error = getErrorMessage(err);
       } finally {
-        this.loading = false;
+        this.loadingMore = false;
       }
     }
   }
@@ -234,6 +284,10 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.load-more {
+  justify-self: center;
 }
 
 .load-error {

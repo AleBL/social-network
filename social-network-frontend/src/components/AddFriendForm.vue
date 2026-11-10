@@ -1,41 +1,28 @@
 <template>
   <form class="add-friend" @submit.prevent="submit">
-    <p v-if="candidates.length === 0" class="empty">
-      Everyone is already a friend.
-    </p>
-    <template v-else>
-      <label for="add-friend-select">Add a friend</label>
-      <div class="row">
-        <select
-          id="add-friend-select"
-          v-model="selectedId"
-          :disabled="disabled"
-        >
-          <option value="" disabled>Choose a user</option>
-          <option
-            v-for="candidate in candidates"
-            :key="candidate.id"
-            :value="candidate.id"
-          >
-            {{ candidate.name }} ({{ candidate.email }})
-          </option>
-        </select>
-        <button type="submit" :disabled="disabled || !selectedId">
-          Add friend
-        </button>
-      </div>
-    </template>
+    <UserPicker
+      v-model="selected"
+      label="Add a friend"
+      placeholder="Search people to add"
+      :exclude-ids="excludeIds"
+      :disabled="disabled"
+    />
+    <button type="submit" :disabled="disabled || !selected">Add friend</button>
   </form>
 </template>
 
 <script>
+import UserPicker from './UserPicker.vue';
+
 // Only picks the user; the parent view calls the API and shows the result.
 export default {
   name: 'AddFriendForm',
+  components: { UserPicker },
   props: {
-    candidates: {
+    // The profile owner and their current friends.
+    excludeIds: {
       type: Array,
-      required: true
+      default: () => []
     },
     disabled: {
       type: Boolean,
@@ -44,15 +31,15 @@ export default {
   },
   emits: ['add'],
   data() {
-    return { selectedId: '' };
+    return { selected: null };
   },
   methods: {
     submit() {
-      if (!this.selectedId) {
+      if (!this.selected) {
         return;
       }
-      this.$emit('add', this.selectedId);
-      this.selectedId = '';
+      this.$emit('add', this.selected);
+      this.selected = null;
     }
   }
 };
@@ -61,32 +48,10 @@ export default {
 <style scoped>
 .add-friend {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.6rem;
 }
 
-label {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-select {
-  font: inherit;
-  flex: 1 1 14rem;
-  min-width: 0;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-}
-
-.empty {
-  margin: 0;
-  color: var(--color-muted);
+button {
+  justify-self: start;
 }
 </style>
