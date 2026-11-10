@@ -10,7 +10,8 @@ services:
     buildCommand: yarn install --frozen-lockfile
     startCommand: node src/app.js
     healthCheckPath: /ping
-    autoDeploy: true
+    # Deploy only after the GitHub Actions checks of the commit pass.
+    autoDeployTrigger: checksPass
     envVars:
       - key: NODE_VERSION
         value: "22.12.0"
@@ -29,6 +30,7 @@ services:
     # Builds from the repo root so staticPublishPath is unambiguous.
     buildCommand: cd social-network-frontend && yarn install --frozen-lockfile && yarn build
     staticPublishPath: ./social-network-frontend/dist
+    autoDeployTrigger: checksPass
     buildFilter:
       paths:
         - social-network-frontend/**
