@@ -24,6 +24,30 @@ export async function createUser({ name, email }) {
   await api.post('/api/users', { name, email });
 }
 
+const userPath = (id) => encodeURIComponent(id);
+
+export async function getUser(id) {
+  const { data } = await api.get(`/api/users/${userPath(id)}`);
+  return data.data;
+}
+
+export async function listFriends(id) {
+  const { data } = await api.get(`/api/users/listFriends/${userPath(id)}`);
+  return data.data;
+}
+
+export async function recommendFriends(id) {
+  const { data } = await api.get(
+    `/api/users/recommendFriends/${userPath(id)}`
+  );
+  return data.data;
+}
+
+// Friendships are mutual: the backend links both users.
+export async function createFriendship(userId1, userId2) {
+  await api.post('/api/users/createFriendship', { userId1, userId2 });
+}
+
 // Turns an axios error into a message for the UI. The backend always answers
 // errors as { status: 'error', error: '<message>' } (400, 404, 409, 429, 503...).
 export function getErrorMessage(error) {
