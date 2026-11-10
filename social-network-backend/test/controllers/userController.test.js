@@ -168,6 +168,21 @@ describe('User Controller', () => {
         error: 'Database error'
       });
     });
+
+    it('should use the status code carried by the error', async () => {
+      const mockError = new Error('a user cannot be friends with themselves');
+      mockError.statusCode = 400;
+      const req = mockRequest({}, { userId1: '1', userId2: '1' });
+      userService.createFriendship.mockRejectedValue(mockError);
+
+      await userController.createFriendship(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        error: mockError.message
+      });
+    });
   });
 
   describe('listFriends', () => {

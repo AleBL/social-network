@@ -1,6 +1,11 @@
 const { User } = require('../models/user');
 const { v4: uuidv4 } = require('uuid');
 const { driver } = require('../services/ogm');
+const { ConflictError } = require('../errors');
+const {
+  validateNewUser,
+  validateFriendshipIds
+} = require('../validation/userValidation');
 
 async function createFriendshipDatabase(userInId, userOutId) {
   await User.update({
@@ -34,24 +39,22 @@ async function getUserById(userId) {
 }
 
 async function createUser(userData) {
+  const { name, email } = validateNewUser(userData);
+
   const [existingUser] = await User.find({
-    where: { email: userData.email }
+    where: { email }
   });
 
   if (existingUser) {
-    const error = new Error(
-      'User with email ' + userData.email + ' already exists'
-    );
-    error.statusCode = 409;
-    throw error;
+    throw new ConflictError('User with email ' + email + ' already exists');
   }
 
   const user = await User.create({
     input: [
       {
         id: uuidv4(),
-        name: userData.name,
-        email: userData.email
+        name,
+        email
       }
     ]
   });
@@ -59,9 +62,26 @@ async function createUser(userData) {
   return user;
 }
 
+async function areFriends(userId1, userId2) {
+  const [user] = await User.find({
+    where: { id: userId1, friends_SOME: { id: userId2 } }
+  });
+
+  return Boolean(user);
+}
+
 async function createFriendship(userId1, userId2) {
+  validateFriendshipIds(userId1, userId2);
+
   await getUserById(userId1);
   await getUserById(userId2);
+
+  // The OGM "connect" uses MERGE: connecting again would silently reset "since".
+  if (await areFriends(userId1, userId2)) {
+    throw new ConflictError(
+      'Users ' + userId1 + ' and ' + userId2 + ' are already friends'
+    );
+  }
 
   await createFriendshipDatabase(userId1, userId2);
   await createFriendshipDatabase(userId2, userId1);
