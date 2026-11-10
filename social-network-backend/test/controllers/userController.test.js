@@ -1,8 +1,13 @@
 const userController = require('../../src/controllers/userController');
 const userService = require('../../src/services/userService');
 
+const userSearch = require('../../src/services/userSearch');
+
+jest.mock('../../src/services/userSearch', () => ({
+  searchUsers: jest.fn()
+}));
+
 jest.mock('../../src/services/userService', () => ({
-  getAllUsers: jest.fn(),
   getUserById: jest.fn(),
   createUser: jest.fn(),
   createFriendship: jest.fn(),
@@ -33,34 +38,55 @@ describe('User Controller', () => {
     jest.clearAllMocks();
   });
 
-  describe('getAllUsers', () => {
-    it('should return all users', async () => {
-      const mockData = [
-        { id: 1, name: 'Alice' },
-        { id: 2, name: 'Bob' }
+  describe('listUsers', () => {
+    it('answers one page with the total, using the defaults', async () => {
+      const users = [
+        { id: '1', name: 'Alice', email: 'a@b.co' },
+        { id: '2', name: 'Bob', email: 'b@b.co' }
       ];
-      userService.getAllUsers.mockResolvedValue(mockData);
+      userSearch.searchUsers.mockResolvedValue({ users, total: 42 });
 
-      await userController.getAllUsers({}, res, next);
+      await userController.listUsers({ query: {} }, res, next);
 
+      expect(userSearch.searchUsers).toHaveBeenCalledWith({
+        search: '',
+        limit: 20,
+        offset: 0
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
-        count: mockData.length,
-        data: mockData
+        data: users,
+        count: 2,
+        total: 42,
+        limit: 20,
+        offset: 0
       });
     });
 
-    it('should include count 0 for an empty list', async () => {
-      userService.getAllUsers.mockResolvedValue([]);
+    it('passes a trimmed search, the limit and the offset', async () => {
+      userSearch.searchUsers.mockResolvedValue({ users: [], total: 0 });
 
-      await userController.getAllUsers({}, res, next);
+      await userController.listUsers(
+        { query: { search: '  júlia ', limit: '5', offset: '10' } },
+        res,
+        next
+      );
 
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'success',
-        count: 0,
-        data: []
+      expect(userSearch.searchUsers).toHaveBeenCalledWith({
+        search: 'júlia',
+        limit: 5,
+        offset: 10
       });
+    });
+
+    it('forwards an invalid query as a 400 error', async () => {
+      await userController.listUsers({ query: { limit: '0' } }, res, next);
+
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({ statusCode: 400 })
+      );
+      expect(userSearch.searchUsers).not.toHaveBeenCalled();
     });
   });
 
@@ -188,7 +214,6 @@ describe('User Controller', () => {
   // Status codes and messages are decided by the errorHandler middleware.
   describe('error forwarding', () => {
     it.each([
-      ['getAllUsers', 'getAllUsers', {}],
       ['getUserById', 'getUserById', mockRequest({ userId: '1' })],
       ['createUser', 'createUser', mockRequest({}, { name: 'Alice' })],
       [

@@ -25,31 +25,6 @@ describe('User Service', () => {
     jest.clearAllMocks();
   });
 
-  // ----------------- getAllUsers -----------------
-  describe('getAllUsers', () => {
-    it('should return all users', async () => {
-      const mockUsers = [
-        { id: '1', name: 'Alice' },
-        { id: '2', name: 'Bob' }
-      ];
-      User.find.mockResolvedValue(mockUsers);
-
-      const result = await userService.getAllUsers();
-
-      expect(User.find).toHaveBeenCalledWith({});
-      expect(result).toEqual(mockUsers);
-    });
-
-    it('should return an empty list when no users exist', async () => {
-      User.find.mockResolvedValue([]);
-
-      const result = await userService.getAllUsers();
-
-      expect(User.find).toHaveBeenCalledWith({});
-      expect(result).toEqual([]);
-    });
-  });
-
   // ----------------- getUserById -----------------
   describe('getUserById', () => {
     it('should return the user by ID', async () => {

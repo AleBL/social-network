@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 
-router.get('/', userController.getAllUsers);
+router.get('/', userController.listUsers);
 router.get('/:userId', userController.getUserById);
 router.post('/', userController.createUser);
 router.post('/createFriendship', userController.createFriendship);
