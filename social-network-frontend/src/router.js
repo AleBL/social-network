@@ -6,6 +6,12 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomeView
+  },
+  {
+    path: '/users',
+    name: 'users',
+    // Loaded on demand: keeps the first page small.
+    component: () => import('./views/UsersView.vue')
   }
 ];
 
