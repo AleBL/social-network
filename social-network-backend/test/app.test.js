@@ -2,6 +2,7 @@ const request = require('supertest');
 
 // Avoid connecting to Neo4j: the routes (and the OGM behind them) are not needed here.
 jest.mock('../src/routes/userRoutes', () => require('express').Router());
+jest.mock('../src/routes/graphRoutes', () => require('express').Router());
 
 const ALLOWED_ORIGIN = 'https://front.example.com';
 const WRITE_LIMIT = 2;

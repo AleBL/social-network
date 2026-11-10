@@ -25,6 +25,12 @@ const routes = [
     path: '/common-friends',
     name: 'common-friends',
     component: () => import('./views/CommonFriendsView.vue')
+  },
+  {
+    // Lazy: keeps d3 out of the first page bundle.
+    path: '/graph',
+    name: 'graph',
+    component: () => import('./views/GraphView.vue')
   }
 ];
 

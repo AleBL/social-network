@@ -6,6 +6,7 @@
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/users">Users</RouterLink>
         <RouterLink to="/common-friends">Common friends</RouterLink>
+        <RouterLink to="/graph">Graph</RouterLink>
       </nav>
     </header>
 
