@@ -162,6 +162,25 @@ describe('API with a real Neo4j', () => {
 
       expect(res.status).toBe(200);
       expect(names(res.body.data)).toEqual(['Dave']);
+      // Explains the suggestion: Bob and Carol are friends with both.
+      expect(names(res.body.data[0].mutualFriends)).toEqual(['Bob', 'Carol']);
+    });
+
+    it('ranks suggestions by the number of mutual friends', async () => {
+      // Erin is a friend of Bob only, so for Alice she ranks below Dave
+      // (friend of Bob and Carol).
+      const erin = await createUser('Erin', 'erin@example.com');
+      expect((await befriend(bob.id, erin.id)).status).toBe(201);
+
+      const res = await api().get(`/api/users/recommendFriends/${alice.id}`);
+
+      expect(res.body.data.map((person) => person.name)).toEqual([
+        'Dave',
+        'Erin'
+      ]);
+      expect(
+        res.body.data.map((person) => person.mutualFriends.length)
+      ).toEqual([2, 1]);
     });
 
     it('rejects an existing friendship with 409 and keeps a single relationship', async () => {

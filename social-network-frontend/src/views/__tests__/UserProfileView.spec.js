@@ -36,7 +36,9 @@ describe('UserProfileView', () => {
   beforeEach(() => {
     getUser.mockResolvedValue(alice);
     listFriends.mockResolvedValue([carol, bob]);
-    recommendFriends.mockResolvedValue([dave]);
+    recommendFriends.mockResolvedValue([
+      { ...dave, mutualFriends: [bob, carol] }
+    ]);
     getUsers.mockResolvedValue([alice, bob, carol, dave]);
   });
 
@@ -54,6 +56,31 @@ describe('UserProfileView', () => {
       'Carol'
     ]);
     expect(wrapper.find('.recommendation').text()).toContain('Dave');
+  });
+
+  it('explains each suggestion with the mutual friends', async () => {
+    const wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('.recommendation .mutual').text()).toBe(
+      '2 mutual friends: Bob and Carol'
+    );
+  });
+
+  it('keeps the backend ranking instead of sorting by name', async () => {
+    const erin = { id: '5', name: 'Erin', email: 'erin@example.com' };
+    const zoe = { id: '6', name: 'Zoe', email: 'zoe@example.com' };
+    recommendFriends.mockResolvedValue([
+      { ...zoe, mutualFriends: [bob, carol] },
+      { ...erin, mutualFriends: [bob] }
+    ]);
+
+    const wrapper = mountView();
+    await flushPromises();
+
+    expect(
+      wrapper.findAll('.recommendation-info a').map((link) => link.text())
+    ).toEqual(['Zoe', 'Erin']);
   });
 
   it('offers only users who are not the user nor a friend', async () => {

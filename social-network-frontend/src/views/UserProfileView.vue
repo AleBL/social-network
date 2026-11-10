@@ -52,17 +52,27 @@
 
       <section class="card" aria-labelledby="recommendations-title">
         <h2 id="recommendations-title">People you may know</h2>
-        <p class="hint">Friends of your friends.</p>
+        <p class="hint">
+          Friends of your friends, most mutual friends first.
+        </p>
         <p v-if="recommendations.length === 0" class="empty">
           No recommendations yet.
         </p>
         <ul v-else class="people">
+          <!-- Kept in the backend order: ranked by mutual friends. -->
           <li
-            v-for="person in sortedRecommendations"
+            v-for="person in recommendations"
             :key="person.id"
             class="recommendation"
           >
-            <RouterLink :to="profileLink(person)">{{ person.name }}</RouterLink>
+            <div class="recommendation-info">
+              <RouterLink :to="profileLink(person)">{{
+                person.name
+              }}</RouterLink>
+              <span class="mutual">{{
+                describeMutualFriends(person.mutualFriends)
+              }}</span>
+            </div>
             <button
               type="button"
               :disabled="adding !== null"
@@ -88,6 +98,7 @@ import {
   listFriends,
   recommendFriends
 } from '../services/api';
+import { describeMutualFriends } from '../utils/mutualFriends';
 
 const byName = (a, b) => a.name.localeCompare(b.name);
 
@@ -119,9 +130,6 @@ export default {
     sortedFriends() {
       return [...this.friends].sort(byName);
     },
-    sortedRecommendations() {
-      return [...this.recommendations].sort(byName);
-    },
     // Everyone except this user and the current friends.
     candidates() {
       const friendIds = new Set(this.friends.map((friend) => friend.id));
@@ -140,6 +148,7 @@ export default {
     this.load();
   },
   methods: {
+    describeMutualFriends,
     profileLink(person) {
       return { name: 'user', params: { id: person.id } };
     },
@@ -249,6 +258,17 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+.recommendation-info {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.mutual {
+  font-size: 0.85rem;
+  color: var(--color-muted);
 }
 
 .message {

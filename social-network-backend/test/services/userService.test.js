@@ -280,13 +280,17 @@ describe('User Service', () => {
       expect(driver.session).not.toHaveBeenCalled();
     });
 
-    it('should return friend recommendations', async () => {
-      const mockRecommendations = [{ id: '3', name: 'Charlie' }];
-
+    it('should return recommendations with their mutual friends sorted by name', async () => {
+      const values = {
+        candidate: { id: '4', name: 'Dave', email: 'dave@example.com' },
+        mutualFriends: [
+          { id: '3', name: 'Carol' },
+          { id: '2', name: 'Bob' }
+        ]
+      };
       const runMock = jest.fn().mockResolvedValue({
-        records: [{ get: () => ({ properties: mockRecommendations[0] }) }]
+        records: [{ get: (key) => values[key] }]
       });
-
       const closeMock = jest.fn();
 
       User.find.mockResolvedValue([{ id: '1', name: 'Alice' }]);
@@ -297,17 +301,34 @@ describe('User Service', () => {
 
       const result = await userService.recommendFriends('1');
 
-      expect(result).toEqual(mockRecommendations);
-      expect(driver.session).toHaveBeenCalledTimes(1);
-      expect(runMock).toHaveBeenCalledWith(expect.stringContaining('MATCH'), {
-        userId: '1'
-      });
-      // A friend-of-friend reachable through several mutual friends must appear once
-      expect(runMock).toHaveBeenCalledWith(
-        expect.stringContaining('RETURN DISTINCT indirectFriend'),
-        expect.anything()
-      );
-      expect(closeMock).toHaveBeenCalled();
+      expect(result).toEqual([
+        {
+          id: '4',
+          name: 'Dave',
+          email: 'dave@example.com',
+          mutualFriends: [
+            { id: '2', name: 'Bob' },
+            { id: '3', name: 'Carol' }
+          ]
+        }
+      ]);
+      expect(closeMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('should rank by mutual friends, group each candidate once and limit the list', async () => {
+      const runMock = jest.fn().mockResolvedValue({ records: [] });
+
+      User.find.mockResolvedValue([{ id: '1', name: 'Alice' }]);
+      driver.session.mockReturnValue({ run: runMock, close: jest.fn() });
+
+      await userService.recommendFriends('1');
+
+      const [query, params] = runMock.mock.calls[0];
+      // One row per candidate even when reachable through several friends.
+      expect(query).toContain('collect(DISTINCT friend');
+      expect(query).toContain('ORDER BY size(mutualFriends) DESC');
+      expect(params.userId).toBe('1');
+      expect(params.limit.toNumber()).toBe(20);
     });
 
     it('should handle database errors gracefully', async () => {
