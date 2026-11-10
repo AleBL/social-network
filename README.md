@@ -216,6 +216,14 @@ Every error uses the same body: `{ "status": "error", "error": "<message>" }`.
 
 ---
 
+### **Graph Routes** 🕸️
+
+- **`GET /api/graph`**
+  Returns the whole friendship network for visualization: `{ "nodes": [{ "id", "name" }], "links": [{ "source", "target" }] }`.
+  Each friendship appears once (Neo4j stores it in both directions). Emails are not included. Limited to the first 500 users by name.
+
+---
+
 ## 🛠️ **Technologies Used**
 
 ### **Backend**
