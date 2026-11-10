@@ -18,6 +18,12 @@
       <header>
         <h1>{{ user.name }}</h1>
         <p class="email">{{ user.email }}</p>
+        <RouterLink
+          :to="{ name: 'common-friends', query: { a: user.id } }"
+          class="compare"
+        >
+          Compare friends with someone
+        </RouterLink>
       </header>
 
       <p v-if="actionError" class="message message--error" role="alert">
