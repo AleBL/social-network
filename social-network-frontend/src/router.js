@@ -19,6 +19,12 @@ const routes = [
     component: () => import('./views/UserProfileView.vue'),
     // Passes :id to the view as the `id` prop.
     props: true
+  },
+  {
+    // Accepts ?a=<id>&b=<id> to pre-select both users.
+    path: '/common-friends',
+    name: 'common-friends',
+    component: () => import('./views/CommonFriendsView.vue')
   }
 ];
 
