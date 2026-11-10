@@ -7,7 +7,9 @@
 
     <div v-else-if="usersError" class="load-error" role="alert">
       <p>{{ usersError }}</p>
-      <button type="button" @click="loadUsers">Try again</button>
+      <button type="button" class="secondary" @click="loadUsers">
+        Try again
+      </button>
     </div>
 
     <form v-else class="card picker" @submit.prevent="search">
@@ -54,8 +56,12 @@
         No friends in common.
       </p>
       <ul v-else class="people">
-        <li v-for="friend in sortedResult" :key="friend.id">
-          <RouterLink :to="{ name: 'user', params: { id: friend.id } }">
+        <li v-for="friend in sortedResult" :key="friend.id" class="person">
+          <UserAvatar :id="friend.id" :name="friend.name" size="sm" />
+          <RouterLink
+            :to="{ name: 'user', params: { id: friend.id } }"
+            class="person-link"
+          >
             {{ friend.name }}
           </RouterLink>
         </li>
@@ -66,6 +72,7 @@
 
 <script>
 import LoadingState from '../components/LoadingState.vue';
+import UserAvatar from '../components/UserAvatar.vue';
 import {
   findCommonFriends,
   getErrorMessage,
@@ -76,7 +83,7 @@ const byName = (a, b) => a.name.localeCompare(b.name);
 
 export default {
   name: 'CommonFriendsView',
-  components: { LoadingState },
+  components: { LoadingState, UserAvatar },
   data() {
     return {
       users: [],
@@ -231,7 +238,25 @@ button {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.4rem;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.6rem;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Both selects side by side on wide screens. */
+@media (min-width: 700px) {
+  .picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .picker > :not(.field) {
+    grid-column: 1 / -1;
+  }
 }
 
 .message--error,

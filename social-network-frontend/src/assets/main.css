@@ -1,0 +1,177 @@
+/* Design tokens and base styles shared by every page.
+   The dark theme follows the operating system preference. */
+:root {
+  color-scheme: light;
+  --color-bg: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0f1f7;
+  --color-border: #e2e4ed;
+  --color-text: #1b1d29;
+  --color-muted: #5f6475;
+  --color-primary: #5b5bd6;
+  --color-primary-hover: #4848c2;
+  --color-primary-soft: #ececfd;
+  --color-on-primary: #ffffff;
+  --color-error: #c92a2a;
+  --color-success: #2b8a3e;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%);
+  --shadow-md: 0 8px 24px rgb(16 24 40 / 8%);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-bg: #0e1016;
+    --color-surface: #161922;
+    --color-surface-2: #1e2230;
+    --color-border: #2a2f3e;
+    --color-text: #e8eaf2;
+    --color-muted: #9ba2b6;
+    --color-primary: #8e90ff;
+    --color-primary-hover: #a7a9ff;
+    --color-primary-soft: #252851;
+    --color-on-primary: #11131c;
+    --color-error: #ff8a8a;
+    --color-success: #6ad381;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow-md: 0 8px 24px rgb(0 0 0 / 45%);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  min-width: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+/* Primary action: filled. */
+button,
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+button:hover:not(:disabled),
+.button-link:hover {
+  background: var(--color-primary-hover);
+  text-decoration: none;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Secondary: actions repeated in lists (Connect, Add, Try again). */
+button.secondary,
+.button-link.secondary {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+button.secondary:hover:not(:disabled),
+.button-link.secondary:hover {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+/* Names in lists read as text and light up on hover. */
+a.person-link {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+a.person-link:hover {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
