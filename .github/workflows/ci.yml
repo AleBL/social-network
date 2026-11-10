@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+  # Runs on master too: Render only auto-deploys a commit after its checks pass.
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint + test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: social-network-backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      # Uses the Yarn version pinned in package.json ("packageManager").
+      - run: corepack enable
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn test
+
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: social-network-frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - run: corepack enable
+
+      - run: yarn install --frozen-lockfile
+      # vue-cli-service lint auto-fixes by default; CI must only report.
+      - run: yarn lint --no-fix
+      - run: yarn build
