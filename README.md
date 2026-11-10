@@ -157,8 +157,9 @@ Explore the REST API endpoints available for managing users, friendships, and re
 - **`POST /api/users/`**
   Creates a new user.
   **Body Parameters**:
-  - `name` (string): The user's name.
-  - `email` (string): The user's email address.
+  - `name` (string, required, up to 100 characters): The user's name.
+  - `email` (string, required, valid address): The user's email address. Stored trimmed and lowercase, unique.
+  **Errors**: `400` invalid or missing field, `409` email already registered.
 
 ---
 
@@ -167,8 +168,9 @@ Explore the REST API endpoints available for managing users, friendships, and re
 - **`POST /api/users/createFriendship`**
   Creates a new friendship between two users.
   **Body Parameters**:
-  - `userId1` (string): ID of the first user.
-  - `userId2` (string): ID of the second user.
+  - `userId1` (string, required): ID of the first user.
+  - `userId2` (string, required, different from `userId1`): ID of the second user.
+  **Errors**: `400` missing ids or same id twice, `409` users are already friends, `500` a user does not exist (becomes `404` in a later change).
 
 - **`GET /api/users/listFriends/:userId`**
   Lists all friends of a user.
