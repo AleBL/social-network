@@ -14,3 +14,7 @@ Requires Node.js from the repo [`.nvmrc`](../.nvmrc) and Yarn 1 (`corepack enabl
 | `yarn test` | Run unit tests once (`yarn test:watch` to watch) |
 
 Configuration: [`vite.config.js`](vite.config.js) (dev server, aliases, Vitest) and [`eslint.config.js`](eslint.config.js).
+
+## Environment
+
+Copy [`.env.example`](.env.example) to `.env` in this folder. `VITE_API_URL` is the backend base URL (default `http://localhost:3000`). Vite inlines it at build time, so changing it requires a new build. The backend must allow this app's origin in its `CORS_ORIGIN`.
