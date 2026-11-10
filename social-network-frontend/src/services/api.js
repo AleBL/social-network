@@ -56,6 +56,15 @@ export async function getGraph() {
   return data.data;
 }
 
+// Pairs who are not friends yet but share friends, best matches first:
+// [{ a: { id, name }, b: { id, name }, mutualFriends: [{ id, name }] }].
+export async function getSuggestedConnections(limit = 10) {
+  const { data } = await api.get('/api/graph/suggestions', {
+    params: { limit }
+  });
+  return data.data;
+}
+
 // Friendships are mutual: the backend links both users.
 export async function createFriendship(userId1, userId2) {
   await api.post('/api/users/createFriendship', { userId1, userId2 });

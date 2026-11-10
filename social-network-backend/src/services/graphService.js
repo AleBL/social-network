@@ -38,4 +38,38 @@ async function getFriendshipGraph(limit = GRAPH_NODE_LIMIT) {
   return { nodes, links };
 }
 
-module.exports = { GRAPH_NODE_LIMIT, getFriendshipGraph };
+// Pairs of users who are not friends but share friends, across the whole
+// network: "a and b have 3 mutual friends". "a.id < b.id" keeps each pair once.
+const SUGGESTIONS_QUERY = `
+  MATCH (a:User)-[:FRIEND]->(mutual:User)<-[:FRIEND]-(b:User)
+  WHERE a.id < b.id AND NOT (a)-[:FRIEND]->(b)
+  WITH a, b, collect(DISTINCT mutual { .id, .name }) AS mutualFriends
+  RETURN a { .id, .name } AS a, b { .id, .name } AS b, mutualFriends
+  ORDER BY size(mutualFriends) DESC, a.name ASC, b.name ASC
+  LIMIT $limit
+`;
+
+const byName = (x, y) => x.name.localeCompare(y.name);
+
+// Returns [{ a: { id, name }, b: { id, name }, mutualFriends: [{ id, name }] }],
+// best matches first. Each pair is ordered by name so the UI reads naturally.
+async function getSuggestedConnections(limit) {
+  const { records } = await driver.executeQuery(SUGGESTIONS_QUERY, {
+    limit: neo4j.int(limit)
+  });
+
+  return records.map((record) => {
+    const [a, b] = [record.get('a'), record.get('b')].sort(byName);
+    return {
+      a,
+      b,
+      mutualFriends: [...record.get('mutualFriends')].sort(byName)
+    };
+  });
+}
+
+module.exports = {
+  GRAPH_NODE_LIMIT,
+  getFriendshipGraph,
+  getSuggestedConnections
+};

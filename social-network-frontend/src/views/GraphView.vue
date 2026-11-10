@@ -18,7 +18,25 @@
     </p>
 
     <template v-else>
-      <p class="summary">{{ summary }}</p>
+      <div class="toolbar">
+        <p class="summary">{{ summary }}</p>
+        <label class="toggle">
+          <input
+            v-model="showSuggestions"
+            type="checkbox"
+            @change="onToggleSuggestions"
+          />
+          Show suggested friendships
+        </label>
+      </div>
+      <p v-if="suggestionsError" class="load-error" role="alert">
+        {{ suggestionsError }}
+      </p>
+      <p v-else-if="showSuggestions" class="legend">
+        <span class="legend-line" aria-hidden="true"></span>
+        Dashed lines: {{ suggestionLines.length }} pairs with friends in common
+        who are not friends yet.
+      </p>
       <div class="card canvas">
         <svg
           :viewBox="`0 0 ${width} ${height}`"
@@ -33,6 +51,16 @@
               :y1="link.source.y"
               :x2="link.target.x"
               :y2="link.target.y"
+            />
+          </g>
+          <g v-if="showSuggestions" class="suggestions">
+            <line
+              v-for="line in suggestionLines"
+              :key="line.key"
+              :x1="line.x1"
+              :y1="line.y1"
+              :x2="line.x2"
+              :y2="line.y2"
             />
           </g>
           <g
@@ -59,11 +87,16 @@
 
 <script>
 import LoadingState from '../components/LoadingState.vue';
-import { getErrorMessage, getGraph } from '../services/api';
+import {
+  getErrorMessage,
+  getGraph,
+  getSuggestedConnections
+} from '../services/api';
 import { layoutGraph, nodeRadius } from '../utils/graphLayout';
 
 const WIDTH = 800;
 const HEIGHT = 500;
+const SUGGESTIONS_ON_GRAPH = 20;
 
 export default {
   name: 'GraphView',
@@ -74,10 +107,28 @@ export default {
       height: HEIGHT,
       layout: { nodes: [], links: [] },
       loading: false,
-      error: ''
+      error: '',
+      showSuggestions: false,
+      suggestions: null,
+      suggestionsError: ''
     };
   },
   computed: {
+    // Suggested pairs as dashed lines; drawn separately so they never move the layout.
+    suggestionLines() {
+      const byId = new Map(this.layout.nodes.map((node) => [node.id, node]));
+
+      return (this.suggestions ?? [])
+        .map(({ a, b }) => ({ from: byId.get(a.id), to: byId.get(b.id) }))
+        .filter(({ from, to }) => from && to)
+        .map(({ from, to }) => ({
+          key: `${from.id}-${to.id}`,
+          x1: from.x,
+          y1: from.y,
+          x2: to.x,
+          y2: to.y
+        }));
+    },
     summary() {
       const users = this.layout.nodes.length;
       const friendships = this.layout.links.length;
@@ -91,6 +142,21 @@ export default {
   },
   methods: {
     radius: nodeRadius,
+    // Loaded the first time the toggle is turned on.
+    async onToggleSuggestions() {
+      if (!this.showSuggestions || this.suggestions) {
+        return;
+      }
+
+      this.suggestionsError = '';
+
+      try {
+        this.suggestions = await getSuggestedConnections(SUGGESTIONS_ON_GRAPH);
+      } catch (err) {
+        this.showSuggestions = false;
+        this.suggestionsError = getErrorMessage(err);
+      }
+    },
     async load() {
       this.loading = true;
       this.error = '';
@@ -139,6 +205,44 @@ svg {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.legend {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.legend-line {
+  display: inline-block;
+  width: 2rem;
+  border-top: 2px dashed var(--color-success);
+}
+
+.suggestions line {
+  stroke: var(--color-success);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  opacity: 0.8;
 }
 
 .links line {

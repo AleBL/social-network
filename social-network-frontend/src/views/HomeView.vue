@@ -1,26 +1,38 @@
 <template>
-  <main class="home">
-    <h1>Social Network</h1>
-    <p>Connect with friends and discover new ones through mutual connections.</p>
-    <ApiStatus />
-  </main>
+  <div class="home">
+    <section class="intro">
+      <h1>Social Network</h1>
+      <p>
+        Connect with friends and discover new ones through mutual connections.
+      </p>
+      <ApiStatus />
+    </section>
+
+    <SuggestedConnections />
+  </div>
 </template>
 
 <script>
 import ApiStatus from '../components/ApiStatus.vue';
+import SuggestedConnections from '../components/SuggestedConnections.vue';
 
 export default {
   name: 'HomeView',
-  components: { ApiStatus }
+  components: { ApiStatus, SuggestedConnections }
 };
 </script>
 
 <style scoped>
 .home {
-  max-width: 40rem;
-  margin: 4rem auto;
-  padding: 0 1rem;
-  font-family: system-ui, sans-serif;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.intro {
   text-align: center;
+}
+
+.intro h1 {
+  margin: 0 0 0.5rem;
 }
 </style>
