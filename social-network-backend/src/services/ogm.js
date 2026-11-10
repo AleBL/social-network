@@ -52,6 +52,8 @@ async function initializeOGM() {
   }
 }
 
-initializeOGM();
+// Resolves when startup finished (it never rejects: failures are only logged).
+// Integration tests await it before sending requests.
+const ready = initializeOGM();
 
-module.exports = { ogm, driver };
+module.exports = { ogm, driver, ready };
