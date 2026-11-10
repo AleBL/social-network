@@ -1,45 +1,35 @@
 /* Design tokens and base styles shared by every page.
-   The dark theme follows the operating system preference. */
+   Each color is light-dark(light value, dark value). The theme follows the
+   operating system until the user picks one with the header toggle, which
+   sets <html data-theme="light|dark"> (see utils/theme.js). */
 :root {
-  color-scheme: light;
-  --color-bg: #f6f7fb;
-  --color-surface: #ffffff;
-  --color-surface-2: #f0f1f7;
-  --color-border: #e2e4ed;
-  --color-text: #1b1d29;
-  --color-muted: #5f6475;
-  --color-primary: #5b5bd6;
-  --color-primary-hover: #4848c2;
-  --color-primary-soft: #ececfd;
-  --color-on-primary: #ffffff;
-  --color-error: #c92a2a;
-  --color-success: #2b8a3e;
-  --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%);
-  --shadow-md: 0 8px 24px rgb(16 24 40 / 8%);
+  color-scheme: light dark;
+  --color-bg: light-dark(#f6f7fb, #0e1016);
+  --color-surface: light-dark(#ffffff, #161922);
+  --color-surface-2: light-dark(#f0f1f7, #1e2230);
+  --color-border: light-dark(#e2e4ed, #2a2f3e);
+  --color-text: light-dark(#1b1d29, #e8eaf2);
+  --color-muted: light-dark(#5f6475, #9ba2b6);
+  --color-primary: light-dark(#5b5bd6, #8e90ff);
+  --color-primary-hover: light-dark(#4848c2, #a7a9ff);
+  --color-primary-soft: light-dark(#ececfd, #252851);
+  --color-on-primary: light-dark(#ffffff, #11131c);
+  --color-error: light-dark(#c92a2a, #ff8a8a);
+  --color-success: light-dark(#2b8a3e, #6ad381);
+  --shadow-sm: 0 1px 2px light-dark(rgb(16 24 40 / 6%), rgb(0 0 0 / 40%));
+  --shadow-md: 0 8px 24px light-dark(rgb(16 24 40 / 8%), rgb(0 0 0 / 45%));
   --radius: 14px;
   --radius-sm: 8px;
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto,
     sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --color-bg: #0e1016;
-    --color-surface: #161922;
-    --color-surface-2: #1e2230;
-    --color-border: #2a2f3e;
-    --color-text: #e8eaf2;
-    --color-muted: #9ba2b6;
-    --color-primary: #8e90ff;
-    --color-primary-hover: #a7a9ff;
-    --color-primary-soft: #252851;
-    --color-on-primary: #11131c;
-    --color-error: #ff8a8a;
-    --color-success: #6ad381;
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
-    --shadow-md: 0 8px 24px rgb(0 0 0 / 45%);
-  }
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 *,

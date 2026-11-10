@@ -15,6 +15,18 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
     />
     <title>Social Network</title>
+    <script>
+      // Applies the saved theme before the first paint (no flash of the
+      // wrong theme). Same storage key as src/utils/theme.js.
+      try {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.dataset.theme = theme;
+        }
+      } catch {
+        // Storage blocked (private mode): the system theme is used.
+      }
+    </script>
   </head>
   <body>
     <noscript>
