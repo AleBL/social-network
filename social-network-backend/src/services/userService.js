@@ -1,3 +1,4 @@
+const neo4j = require('neo4j-driver');
 const { User } = require('../models/user');
 const { v4: uuidv4 } = require('uuid');
 const { driver } = require('../services/ogm');
@@ -117,6 +118,22 @@ async function findCommonFriends(userId1, userId2) {
   return commonFriends;
 }
 
+const RECOMMENDATION_LIMIT = 20;
+
+// Friends of friends who are not friends yet, best matches first: ordered by
+// how many friends they share with the user (then by name). Each suggestion
+// lists those mutual friends so the UI can explain why it was suggested.
+const RECOMMENDATIONS_QUERY = `
+  MATCH (user:User {id: $userId})-[:FRIEND]->(friend:User)-[:FRIEND]->(candidate:User)
+  WHERE candidate.id <> user.id AND NOT (user)-[:FRIEND]->(candidate)
+  WITH candidate, collect(DISTINCT friend { .id, .name }) AS mutualFriends
+  RETURN candidate { .id, .name, .email } AS candidate, mutualFriends
+  ORDER BY size(mutualFriends) DESC, candidate.name ASC
+  LIMIT $limit
+`;
+
+const byName = (a, b) => a.name.localeCompare(b.name);
+
 async function recommendFriends(userId) {
   // Without this check an unknown user would get an empty list instead of a 404.
   await getUserById(userId);
@@ -124,21 +141,15 @@ async function recommendFriends(userId) {
   const session = driver.session();
 
   try {
-    const result = await session.run(
-      `
-      MATCH (user:User {id: $userId})-[:FRIEND]->(friend:User)-[:FRIEND]->(indirectFriend:User)
-      WHERE NOT (user)-[:FRIEND]->(indirectFriend) AND indirectFriend.id <> user.id
-      RETURN DISTINCT indirectFriend
-      `,
-      { userId }
-    );
+    const result = await session.run(RECOMMENDATIONS_QUERY, {
+      userId,
+      limit: neo4j.int(RECOMMENDATION_LIMIT)
+    });
 
-    const friendsOfFriends = result.records.map(
-      (record) => record.get('indirectFriend')?.properties
-    );
-
-    await session.close();
-    return friendsOfFriends;
+    return result.records.map((record) => ({
+      ...record.get('candidate'),
+      mutualFriends: [...record.get('mutualFriends')].sort(byName)
+    }));
   } finally {
     await session.close();
   }
