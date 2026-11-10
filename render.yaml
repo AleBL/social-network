@@ -19,6 +19,8 @@ services:
         value: production
       - key: CORS_ORIGIN
         value: https://social-network-frontend-39do.onrender.com
+      - key: TRUST_PROXY
+        value: "1"
       - key: NEO4J_URI
         sync: false
       - key: NEO4J_USER

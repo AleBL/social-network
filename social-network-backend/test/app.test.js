@@ -4,9 +4,11 @@ const request = require('supertest');
 jest.mock('../src/routes/userRoutes', () => require('express').Router());
 
 const ALLOWED_ORIGIN = 'https://front.example.com';
+const WRITE_LIMIT = 2;
 
-// Must be set before the app is loaded: the CORS policy is read at startup.
+// Must be set before the app is loaded: CORS and rate limits are read at startup.
 process.env.CORS_ORIGIN = ALLOWED_ORIGIN;
+process.env.RATE_LIMIT_WRITE_MAX = String(WRITE_LIMIT);
 const app = require('../src/app');
 
 describe('app', () => {
@@ -46,5 +48,49 @@ describe('app', () => {
       .set('Origin', 'https://evil.example.com');
 
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
+  it('sends security headers and hides the framework', async () => {
+    const res = await request(app).get('/ping');
+
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-powered-by']).toBeUndefined();
+  });
+
+  it('rejects bodies over 10kb with a JSON 413', async () => {
+    const res = await request(app)
+      .post('/ping')
+      .send({ name: 'a'.repeat(11 * 1024) });
+
+    expect(res.status).toBe(413);
+    expect(res.body.status).toBe('error');
+  });
+
+  it('does not rate limit /ping', async () => {
+    const res = await request(app).get('/ping');
+
+    expect(res.headers.ratelimit).toBeUndefined();
+  });
+
+  it('rate limits writes under /api with a JSON 429', async () => {
+    for (let i = 0; i < WRITE_LIMIT; i++) {
+      const allowed = await request(app).post('/api/users').send({});
+      expect(allowed.status).not.toBe(429);
+    }
+
+    const blocked = await request(app).post('/api/users').send({});
+
+    expect(blocked.status).toBe(429);
+    expect(blocked.body).toEqual({
+      status: 'error',
+      error: 'Too many write requests, please try again later'
+    });
+    expect(blocked.headers.ratelimit).toBeDefined();
+  });
+
+  it('keeps reads allowed after the write limit is reached', async () => {
+    const res = await request(app).get('/api/users');
+
+    expect(res.status).not.toBe(429);
   });
 });
