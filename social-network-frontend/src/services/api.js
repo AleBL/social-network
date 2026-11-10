@@ -43,6 +43,13 @@ export async function recommendFriends(id) {
   return data.data;
 }
 
+export async function findCommonFriends(id1, id2) {
+  const { data } = await api.get(
+    `/api/users/findCommonFriends/${userPath(id1)}/${userPath(id2)}`
+  );
+  return data.data;
+}
+
 // Friendships are mutual: the backend links both users.
 export async function createFriendship(userId1, userId2) {
   await api.post('/api/users/createFriendship', { userId1, userId2 });
