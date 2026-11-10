@@ -23,6 +23,23 @@ describe('app', () => {
     expect(res.headers['access-control-allow-origin']).toBe(ALLOWED_ORIGIN);
   });
 
+  it('answers unknown routes with a JSON 404', async () => {
+    const res = await request(app).get('/does-not-exist');
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ status: 'error', error: 'Route not found' });
+  });
+
+  it('answers a malformed JSON body with a JSON 400', async () => {
+    const res = await request(app)
+      .post('/ping')
+      .set('Content-Type', 'application/json')
+      .send('{bad json');
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ status: 'error', error: 'Invalid JSON body' });
+  });
+
   it('omits the CORS header for any other origin', async () => {
     const res = await request(app)
       .get('/ping')

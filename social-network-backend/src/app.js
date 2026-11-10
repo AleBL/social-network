@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { parseAllowedOrigins } = require('./config/cors');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -16,6 +17,10 @@ app.get('/ping', (req, res) => {
 
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
+
+// Must be registered after all routes.
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Only listen when run directly (node src/app.js), not when imported by tests.
 if (require.main === module) {
