@@ -22,7 +22,12 @@
 
     <ul v-else class="user-list">
       <li v-for="user in sortedUsers" :key="user.id" class="card">
-        <span class="user-name">{{ user.name }}</span>
+        <RouterLink
+          :to="{ name: 'user', params: { id: user.id } }"
+          class="user-name"
+        >
+          {{ user.name }}
+        </RouterLink>
         <span class="user-email">{{ user.email }}</span>
       </li>
     </ul>

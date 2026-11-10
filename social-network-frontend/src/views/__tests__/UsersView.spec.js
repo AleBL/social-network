@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { flushPromises, mount } from '@vue/test-utils';
+import { RouterLinkStub, flushPromises, mount } from '@vue/test-utils';
 import UsersView from '../UsersView.vue';
 import { getUsers } from '../../services/api';
 
@@ -9,7 +9,9 @@ vi.mock('../../services/api', async (importOriginal) => ({
 }));
 
 const mountView = () =>
-  mount(UsersView, { global: { stubs: { UserForm: true } } });
+  mount(UsersView, {
+    global: { stubs: { UserForm: true, RouterLink: RouterLinkStub } }
+  });
 
 describe('UsersView', () => {
   afterEach(() => {
