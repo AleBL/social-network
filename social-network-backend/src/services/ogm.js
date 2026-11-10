@@ -16,7 +16,14 @@ const typeDefs = `
 
 const driver = neo4j.driver(
   process.env.NEO4J_URI,
-  neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
+  neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD),
+  {
+    // Fail fast when the database is unreachable (e.g. AuraDB Free paused).
+    // Driver defaults are 30s/60s/30s, which kept requests hanging for ~1 minute.
+    connectionTimeout: 8000,
+    connectionAcquisitionTimeout: 10000,
+    maxTransactionRetryTime: 5000
+  }
 );
 const ogm = new OGM({ typeDefs, driver, config: { debug: true } });
 
