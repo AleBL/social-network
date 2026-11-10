@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "main": "src/app.js",
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
