@@ -12,6 +12,8 @@
     "dev": "nodemon src/app.js",
     "test": "jest --testPathIgnorePatterns /node_modules/ /test/integration/",
     "test:integration": "jest --runInBand --testPathPattern test/integration",
+    "seed": "node --env-file-if-exists=../.env scripts/seed.js",
+    "seed:reset": "node --env-file-if-exists=../.env scripts/seed.js --reset",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
