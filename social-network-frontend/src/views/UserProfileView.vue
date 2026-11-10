@@ -11,18 +11,25 @@
 
     <div v-else-if="error && !user" class="load-error" role="alert">
       <p>{{ error }}</p>
-      <button type="button" @click="load">Try again</button>
+      <button type="button" class="secondary" @click="load">Try again</button>
     </div>
 
     <template v-else-if="user">
-      <header>
-        <h1>{{ user.name }}</h1>
-        <p class="email">{{ user.email }}</p>
+      <header class="card profile-header">
+        <UserAvatar :id="user.id" :name="user.name" size="lg" />
+        <div class="profile-text">
+          <h1>{{ user.name }}</h1>
+          <p class="email">{{ user.email }}</p>
+          <p class="profile-stats">
+            {{ friends.length }} friends · {{ recommendations.length }}
+            suggestions
+          </p>
+        </div>
         <RouterLink
           :to="{ name: 'common-friends', query: { a: user.id } }"
-          class="compare"
+          class="button-link secondary compare"
         >
-          Compare friends with someone
+          Compare friends
         </RouterLink>
       </header>
 
@@ -33,14 +40,18 @@
         {{ actionMessage }}
       </p>
 
+      <div class="profile-grid">
       <section class="card" aria-labelledby="friends-title">
         <h2 id="friends-title">
           Friends <span class="count">({{ friends.length }})</span>
         </h2>
         <p v-if="friends.length === 0" class="empty">No friends yet.</p>
         <ul v-else class="people">
-          <li v-for="friend in sortedFriends" :key="friend.id">
-            <RouterLink :to="profileLink(friend)">{{ friend.name }}</RouterLink>
+          <li v-for="friend in sortedFriends" :key="friend.id" class="person">
+            <UserAvatar :id="friend.id" :name="friend.name" size="sm" />
+            <RouterLink :to="profileLink(friend)" class="person-link">{{
+              friend.name
+            }}</RouterLink>
           </li>
         </ul>
         <AddFriendForm
@@ -65,8 +76,9 @@
             :key="person.id"
             class="recommendation"
           >
+            <UserAvatar :id="person.id" :name="person.name" size="sm" />
             <div class="recommendation-info">
-              <RouterLink :to="profileLink(person)">{{
+              <RouterLink :to="profileLink(person)" class="person-link">{{
                 person.name
               }}</RouterLink>
               <span class="mutual">{{
@@ -75,6 +87,7 @@
             </div>
             <button
               type="button"
+              class="secondary"
               :disabled="adding !== null"
               @click="addFriend(person.id)"
             >
@@ -83,6 +96,7 @@
           </li>
         </ul>
       </section>
+      </div>
     </template>
   </section>
 </template>
@@ -90,6 +104,7 @@
 <script>
 import AddFriendForm from '../components/AddFriendForm.vue';
 import LoadingState from '../components/LoadingState.vue';
+import UserAvatar from '../components/UserAvatar.vue';
 import {
   createFriendship,
   getErrorMessage,
@@ -104,7 +119,7 @@ const byName = (a, b) => a.name.localeCompare(b.name);
 
 export default {
   name: 'UserProfileView',
-  components: { AddFriendForm, LoadingState },
+  components: { AddFriendForm, LoadingState, UserAvatar },
   props: {
     // From the route (/users/:id) thanks to `props: true`.
     id: {
@@ -219,6 +234,44 @@ header p {
   margin: 0;
 }
 
+.profile-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.profile-text {
+  display: grid;
+  gap: 0.2rem;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.profile-stats {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.profile-grid {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 h2 {
   font-size: 1.1rem;
 }
@@ -261,6 +314,7 @@ h2 {
 }
 
 .recommendation-info {
+  flex: 1 1 10rem;
   display: grid;
   gap: 0.1rem;
   min-width: 0;
