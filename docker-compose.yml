@@ -26,8 +26,11 @@ services:
       - "${BACKEND_PORT}:3000"
     volumes:
       - ./social-network-backend:/app
+      # Keeps the node_modules installed in the image from being hidden by the bind mount
+      - /app/node_modules
     environment:
       NODE_ENV: development
+      PORT: 3000
       NEO4J_URI: bolt://neo4j:${NEO4J_BOLT_PORT}
     env_file: 
       - .env
@@ -36,7 +39,7 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    command: ["yarn", "start"]
+    command: ["yarn", "dev"]
     restart: unless-stopped
 
   social-network-frontend:
@@ -47,6 +50,8 @@ services:
       - "${FRONTEND_PORT}:8080"
     volumes:
       - ./social-network-frontend:/app
+      # Keeps the node_modules installed in the image from being hidden by the bind mount
+      - /app/node_modules
     depends_on:
       social-network-backend:
         condition: service_started

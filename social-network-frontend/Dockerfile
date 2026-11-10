@@ -11,6 +11,6 @@ RUN yarn install
 
 COPY . .
 
-RUN yarn build
-
+# Development image: docker-compose runs the dev server (yarn start).
+# The production build (yarn build) runs on the static host (see render.yaml).
 EXPOSE 8080

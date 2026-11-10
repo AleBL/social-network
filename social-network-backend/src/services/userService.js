@@ -34,6 +34,18 @@ async function getUserById(userId) {
 }
 
 async function createUser(userData) {
+  const [existingUser] = await User.find({
+    where: { email: userData.email }
+  });
+
+  if (existingUser) {
+    const error = new Error(
+      'User with email ' + userData.email + ' already exists'
+    );
+    error.statusCode = 409;
+    throw error;
+  }
+
   const user = await User.create({
     input: [
       {
@@ -93,7 +105,7 @@ async function recommendFriends(userId) {
       `
       MATCH (user:User {id: $userId})-[:FRIEND]->(friend:User)-[:FRIEND]->(indirectFriend:User)
       WHERE NOT (user)-[:FRIEND]->(indirectFriend) AND indirectFriend.id <> user.id
-      RETURN indirectFriend
+      RETURN DISTINCT indirectFriend
       `,
       { userId }
     );

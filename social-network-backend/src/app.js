@@ -15,8 +15,9 @@ app.get('/ping', (req, res) => {
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
 
-app.listen(process.env.BACKEND_PORT, () => {
-  console.log(
-    `Server is running on http://localhost:${process.env.BACKEND_PORT}`
-  );
+// Hosting platforms (e.g. Render) inject PORT; BACKEND_PORT is the local/Docker fallback.
+const port = process.env.PORT || process.env.BACKEND_PORT || 3000;
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

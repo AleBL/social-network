@@ -22,10 +22,10 @@ To make the setup and deployment effortless, the application is fully containeri
 
 ## 🌟 **Key Features**
 
-✅ User registration and management.  
-✅ Create and view friendships.  
-✅ Find common friends.  
-✅ Get friend recommendations based on mutual connections.  
+✅ User registration and management.
+✅ Create and view friendships.
+✅ Find common friends.
+✅ Get friend recommendations based on mutual connections.
 
 ---
 
@@ -55,7 +55,7 @@ cp .env.example .env
 
 #### 🐋 **Using Docker (Recommended)**
 
-1. Navigate to the root of the project directory.  
+1. Navigate to the root of the project directory.
 2. Build and start all services (backend, frontend, and Neo4j) using Docker Compose:
 
 ```bash
@@ -84,7 +84,8 @@ If you prefer to run the services manually, follow the steps below.
 
 3. Start the backend server:
    ```bash
-   yarn start
+   yarn dev    # development, auto-reload with nodemon
+   yarn start  # production, plain node
    ```
 
 4. Useful scripts:
@@ -120,47 +121,47 @@ Explore the REST API endpoints available for managing users, friendships, and re
 
 ### **User Routes** 🧑‍🤝‍🧑
 
-- **`GET /api/users/`**  
+- **`GET /api/users/`**
   Returns all users.
 
-- **`GET /api/users/:userId`**  
-  Retrieves a specific user by ID.  
+- **`GET /api/users/:userId`**
+  Retrieves a specific user by ID.
   **Path Parameters**:
   - `userId` (string): ID of the user.
 
-- **`POST /api/users/`**  
-  Creates a new user.  
+- **`POST /api/users/`**
+  Creates a new user.
   **Body Parameters**:
-  - `name` (string): The user's name.  
+  - `name` (string): The user's name.
   - `email` (string): The user's email address.
 
 ---
 
 ### **Friendship Routes** 👫
 
-- **`POST /api/users/createFriendship`**  
-  Creates a new friendship between two users.  
+- **`POST /api/users/createFriendship`**
+  Creates a new friendship between two users.
   **Body Parameters**:
-  - `userId1` (string): ID of the first user.  
+  - `userId1` (string): ID of the first user.
   - `userId2` (string): ID of the second user.
 
-- **`GET /api/users/listFriends/:userId`**  
-  Lists all friends of a user.  
+- **`GET /api/users/listFriends/:userId`**
+  Lists all friends of a user.
   **Path Parameters**:
   - `userId` (string): ID of the user.
 
-- **`GET /api/users/findCommonFriends/:userId1/:userId2`**  
-  Finds common friends between two users.  
+- **`GET /api/users/findCommonFriends/:userId1/:userId2`**
+  Finds common friends between two users.
   **Path Parameters**:
-  - `userId1` (string): ID of the first user.  
+  - `userId1` (string): ID of the first user.
   - `userId2` (string): ID of the second user.
 
 ---
 
 ### **Recommendation Routes** 💡
 
-- **`GET /api/users/recommendFriends/:userId`**  
-  Recommends potential friends for a user.  
+- **`GET /api/users/recommendFriends/:userId`**
+  Recommends potential friends for a user.
   **Path Parameters**:
   - `userId` (string): ID of the user.
 
@@ -169,10 +170,10 @@ Explore the REST API endpoints available for managing users, friendships, and re
 ## 🛠️ **Technologies Used**
 
 ### **Backend**
-- 🟢 **Node.js**: Server-side runtime.  
-- ⚡ **Express.js**: Web framework.  
-- 🧪 **Jest**: Testing framework.  
-- 🛠️ **ESLint**: Code linting tool.  
+- 🟢 **Node.js**: Server-side runtime.
+- ⚡ **Express.js**: Web framework.
+- 🧪 **Jest**: Testing framework.
+- 🛠️ **ESLint**: Code linting tool.
 
 ### **Frontend**
 - 🌟 **Vue.js**: Modern frontend framework.
@@ -181,7 +182,7 @@ Explore the REST API endpoints available for managing users, friendships, and re
 - 🧠 **Neo4j**: Graph database for handling relationships.
 
 ### **DevOps**
-- 🐳 **Docker**: Containerization.  
+- 🐳 **Docker**: Containerization.
 - 🛠️ **Docker Compose**: Multi-container orchestration.
 
 ---
@@ -190,7 +191,7 @@ Explore the REST API endpoints available for managing users, friendships, and re
 
 Contributions are welcome! 🎉 To contribute:
 
-1. **Fork** the repository.  
+1. **Fork** the repository.
 2. Create a **branch** for your feature:
    ```bash
    git checkout -b my-feature
@@ -218,5 +219,5 @@ This project is licensed under the **MIT License**. For more details, check the 
 
 ## 🎨 **Preview**
 
-Frontend:  
+Frontend:
 ![Frontend UI Mockup](https://via.placeholder.com/800x400?text=Frontend+Preview)  

@@ -53,7 +53,7 @@ exports.createUser = async (req, res) => {
     await createUser(user);
     handleResponse(res, 201, 'User created');
   } catch (err) {
-    handleError(res, 500, err);
+    handleError(res, err.statusCode || 500, err);
   }
 };
 

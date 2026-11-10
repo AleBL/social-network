@@ -77,10 +77,14 @@ describe('User Service', () => {
       const userData = { name: 'Alice', email: 'alice@example.com' };
       const mockCreatedUser = { id: 'uuid', ...userData };
 
+      User.find.mockResolvedValue([]);
       User.create.mockResolvedValue([mockCreatedUser]);
 
       const result = await userService.createUser(userData);
 
+      expect(User.find).toHaveBeenCalledWith({
+        where: { email: userData.email }
+      });
       expect(User.create).toHaveBeenCalledWith({
         input: [
           expect.objectContaining({
@@ -92,8 +96,20 @@ describe('User Service', () => {
       expect(result).toEqual([mockCreatedUser]);
     });
 
+    it('should reject a duplicate email with status 409', async () => {
+      const userData = { name: 'Alice', email: 'alice@example.com' };
+      User.find.mockResolvedValue([{ id: '1', ...userData }]);
+
+      await expect(userService.createUser(userData)).rejects.toMatchObject({
+        message: 'User with email alice@example.com already exists',
+        statusCode: 409
+      });
+      expect(User.create).not.toHaveBeenCalled();
+    });
+
     it('should throw an error if user creation fails', async () => {
       const userData = { name: 'Alice', email: 'alice@example.com' };
+      User.find.mockResolvedValue([]);
       User.create.mockRejectedValue(new Error('Database error'));
 
       await expect(userService.createUser(userData)).rejects.toThrow(
@@ -213,6 +229,11 @@ describe('User Service', () => {
       expect(runMock).toHaveBeenCalledWith(expect.stringContaining('MATCH'), {
         userId: '1'
       });
+      // A friend-of-friend reachable through several mutual friends must appear once
+      expect(runMock).toHaveBeenCalledWith(
+        expect.stringContaining('RETURN DISTINCT indirectFriend'),
+        expect.anything()
+      );
       expect(closeMock).toHaveBeenCalled();
     });
 

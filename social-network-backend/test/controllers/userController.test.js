@@ -120,6 +120,23 @@ describe('User Controller', () => {
         error: mockError.message
       });
     });
+
+    it('should return 409 for a duplicate email', async () => {
+      const mockError = new Error(
+        'User with email alice@example.com already exists'
+      );
+      mockError.statusCode = 409;
+      const req = { body: { name: 'Alice', email: 'alice@example.com' } };
+      userService.createUser.mockRejectedValue(mockError);
+
+      await userController.createUser(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        error: mockError.message
+      });
+    });
   });
 
   describe('createFriendship', () => {
