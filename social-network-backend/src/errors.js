@@ -13,10 +13,16 @@ class ValidationError extends HttpError {
   }
 }
 
+class NotFoundError extends HttpError {
+  constructor(message) {
+    super(404, message);
+  }
+}
+
 class ConflictError extends HttpError {
   constructor(message) {
     super(409, message);
   }
 }
 
-module.exports = { HttpError, ValidationError, ConflictError };
+module.exports = { HttpError, ValidationError, NotFoundError, ConflictError };

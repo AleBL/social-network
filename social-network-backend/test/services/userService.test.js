@@ -62,12 +62,13 @@ describe('User Service', () => {
       expect(result).toEqual(mockUser);
     });
 
-    it('should throw an error if the user is not found', async () => {
+    it('should throw a 404 error if the user is not found', async () => {
       User.find.mockResolvedValue([]);
 
-      await expect(userService.getUserById('123')).rejects.toThrow(
-        'User with id 123 not found'
-      );
+      await expect(userService.getUserById('123')).rejects.toMatchObject({
+        message: 'User with id 123 not found',
+        statusCode: 404
+      });
     });
   });
 
@@ -270,6 +271,15 @@ describe('User Service', () => {
 
   // ----------------- recommendFriends -----------------
   describe('recommendFriends', () => {
+    it('should throw a 404 error for an unknown user without querying', async () => {
+      User.find.mockResolvedValue([]);
+
+      await expect(userService.recommendFriends('404')).rejects.toMatchObject({
+        statusCode: 404
+      });
+      expect(driver.session).not.toHaveBeenCalled();
+    });
+
     it('should return friend recommendations', async () => {
       const mockRecommendations = [{ id: '3', name: 'Charlie' }];
 
@@ -279,6 +289,7 @@ describe('User Service', () => {
 
       const closeMock = jest.fn();
 
+      User.find.mockResolvedValue([{ id: '1', name: 'Alice' }]);
       driver.session.mockReturnValue({
         run: runMock,
         close: closeMock
@@ -305,6 +316,7 @@ describe('User Service', () => {
       const runMock = jest.fn().mockRejectedValue(new Error(errorMessage));
       const closeMock = jest.fn();
 
+      User.find.mockResolvedValue([{ id: '1', name: 'Alice' }]);
       driver.session.mockReturnValue({
         run: runMock,
         close: closeMock

@@ -1,7 +1,7 @@
 const { User } = require('../models/user');
 const { v4: uuidv4 } = require('uuid');
 const { driver } = require('../services/ogm');
-const { ConflictError } = require('../errors');
+const { ConflictError, NotFoundError } = require('../errors');
 const {
   validateNewUser,
   validateFriendshipIds
@@ -32,7 +32,7 @@ async function getUserById(userId) {
   });
 
   if (!user) {
-    throw new Error('User with id ' + userId + ' not found');
+    throw new NotFoundError('User with id ' + userId + ' not found');
   }
 
   return user;
@@ -118,6 +118,9 @@ async function findCommonFriends(userId1, userId2) {
 }
 
 async function recommendFriends(userId) {
+  // Without this check an unknown user would get an empty list instead of a 404.
+  await getUserById(userId);
+
   const session = driver.session();
 
   try {
