@@ -12,6 +12,13 @@ const routes = [
     name: 'users',
     // Loaded on demand: keeps the first page small.
     component: () => import('./views/UsersView.vue')
+  },
+  {
+    path: '/users/:id',
+    name: 'user',
+    component: () => import('./views/UserProfileView.vue'),
+    // Passes :id to the view as the `id` prop.
+    props: true
   }
 ];
 
