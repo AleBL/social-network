@@ -245,6 +245,11 @@ Every error uses the same body: `{ "status": "error", "error": "<message>" }`.
   Returns the whole friendship network for visualization: `{ "nodes": [{ "id", "name" }], "links": [{ "source", "target" }] }`.
   Each friendship appears once (Neo4j stores it in both directions). Emails are not included. Limited to the first 500 users by name.
 
+- **`GET /api/graph/suggestions`**
+  Suggested connections across the whole network: pairs of users who are not friends yet but share friends, ranked by the number of mutual friends. Each item is `{ "a": { "id", "name" }, "b": { "id", "name" }, "mutualFriends": [{ "id", "name" }] }`, each pair once.
+  **Query Parameters**:
+  - `limit` (integer, optional, 1 to 50, default 10). Anything else answers `400`.
+
 ---
 
 ## 🛠️ **Technologies Used**
