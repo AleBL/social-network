@@ -233,7 +233,7 @@ Every error uses the same body: `{ "status": "error", "error": "<message>" }`.
 ### **Recommendation Routes** 💡
 
 - **`GET /api/users/recommendFriends/:userId`**
-  Recommends potential friends for a user.
+  Recommends potential friends for a user: friends of their friends who are not friends yet, ranked by the number of mutual friends (then by name), up to 20. Each item is the user plus `mutualFriends` (`[{ "id", "name" }]`), which explains the suggestion.
   **Path Parameters**:
   - `userId` (string): ID of the user.
 
