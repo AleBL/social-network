@@ -1,116 +1,154 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <RouterLink to="/" class="brand">Social Network</RouterLink>
-      <nav aria-label="Main">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/users">Users</RouterLink>
-        <RouterLink to="/common-friends">Common friends</RouterLink>
-        <RouterLink to="/graph">Graph</RouterLink>
-      </nav>
+      <div class="header-inner">
+        <RouterLink to="/" class="brand">
+          <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="1.8" fill="none">
+              <path d="M7 7l10 3M7 7l4 10M17 10l-6 7" />
+            </g>
+            <g fill="currentColor">
+              <circle cx="7" cy="7" r="3" />
+              <circle cx="17" cy="10" r="3" />
+              <circle cx="11" cy="17" r="3" />
+            </g>
+          </svg>
+          Social Network
+        </RouterLink>
+        <nav aria-label="Main">
+          <RouterLink to="/" class="nav-link nav-link--exact">Home</RouterLink>
+          <!-- Stays highlighted on profiles (/users/:id). -->
+          <RouterLink to="/users" class="nav-link">Users</RouterLink>
+          <RouterLink to="/common-friends" class="nav-link">
+            Common friends
+          </RouterLink>
+          <RouterLink to="/graph" class="nav-link">Graph</RouterLink>
+        </nav>
+      </div>
     </header>
 
     <main class="app-main">
       <RouterView />
     </main>
+
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <ApiStatus />
+        <span class="muted">Vue · Express · Neo4j</span>
+        <a href="https://github.com/AleBL/social-network" rel="noopener">
+          Source on GitHub
+        </a>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script>
+import ApiStatus from './components/ApiStatus.vue';
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: { ApiStatus }
 };
 </script>
 
-<style>
-/* Global styles: shared by every view. */
-:root {
-  --color-text: #1f2328;
-  --color-muted: #59636e;
-  --color-bg: #f6f8fa;
-  --color-surface: #ffffff;
-  --color-border: #d1d9e0;
-  --color-primary: #0969da;
-  --color-error: #c62828;
-  --color-success: #2e7d32;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  color: var(--color-text);
-  background: var(--color-bg);
-}
-
-body {
-  margin: 0;
-}
-
-a {
-  color: var(--color-primary);
-}
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-}
-
-input {
-  font: inherit;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-}
-
-button {
-  font: inherit;
-  padding: 0.45rem 0.9rem;
-  border: 0;
-  border-radius: 6px;
-  background: var(--color-primary);
-  color: #fff;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-</style>
-
 <style scoped>
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-inner,
+.footer-inner,
+.app-main {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding-inline: 1rem;
+}
+
+.header-inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem 1.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  padding-block: 0.6rem;
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
+  font-size: 1.05rem;
   color: var(--color-text);
+}
+
+.brand:hover {
   text-decoration: none;
+}
+
+.logo {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--color-primary);
 }
 
 nav {
   display: flex;
-  gap: 1rem;
+  gap: 0.25rem;
+  overflow-x: auto;
 }
 
-nav a {
+.nav-link {
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  color: var(--color-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
   text-decoration: none;
 }
 
-nav a.router-link-exact-active {
-  font-weight: 700;
-  text-decoration: underline;
+.nav-link.router-link-active:not(.nav-link--exact),
+.nav-link--exact.router-link-exact-active {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .app-main {
-  max-width: 48rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding-block: 2rem 3rem;
+}
+
+.app-footer {
+  border-top: 1px solid var(--color-border);
+  font-size: 0.85rem;
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  padding-block: 1rem;
+}
+
+.footer-inner > :first-child {
+  margin: 0;
 }
 </style>

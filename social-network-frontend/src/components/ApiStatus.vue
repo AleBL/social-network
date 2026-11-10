@@ -49,16 +49,32 @@ export default {
 </script>
 
 <style scoped>
+/* Small status pill with a colored dot (footer). */
 .api-status {
-  font-size: 0.9rem;
-  color: #666;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
 }
 
-.api-status--online {
-  color: #2e7d32;
+.api-status::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-muted);
+}
+
+.api-status--online::before {
+  background: var(--color-success);
 }
 
 .api-status--offline {
-  color: #c62828;
+  color: var(--color-error);
+}
+
+.api-status--offline::before {
+  background: var(--color-error);
 }
 </style>
