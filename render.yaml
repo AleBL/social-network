@@ -17,6 +17,8 @@ services:
         value: "24.22.2"
       - key: NODE_ENV
         value: production
+      - key: CORS_ORIGIN
+        value: https://social-network-frontend-39do.onrender.com
       - key: NEO4J_URI
         sync: false
       - key: NEO4J_USER
@@ -43,3 +45,6 @@ services:
       # Same version as .nvmrc and the backend.
       - key: NODE_VERSION
         value: "24.22.2"
+      # Backend URL baked into the build (update if the backend URL changes).
+      - key: VITE_API_URL
+        value: https://social-network-backend-rzeg.onrender.com

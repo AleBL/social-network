@@ -132,6 +132,8 @@ If you prefer to run the services manually, follow the steps below.
    - `NEO4J_USER`: the Aura username
    - `NEO4J_PASSWORD`: the Aura password
 
+`render.yaml` also sets the URLs that connect both services: `CORS_ORIGIN` (backend, the frontend URL allowed by CORS) and `VITE_API_URL` (frontend, the backend URL, baked in at build time). If a service URL changes, update it there.
+
 Free tier caveats: the Render web service sleeps after ~15 minutes without traffic (first request takes ~1 minute), and AuraDB Free pauses after 72 hours without writes (resume it in the Aura console).
 
 ---

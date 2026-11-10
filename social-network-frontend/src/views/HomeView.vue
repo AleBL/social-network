@@ -2,12 +2,16 @@
   <main class="home">
     <h1>Social Network</h1>
     <p>Connect with friends and discover new ones through mutual connections.</p>
+    <ApiStatus />
   </main>
 </template>
 
 <script>
+import ApiStatus from '../components/ApiStatus.vue';
+
 export default {
-  name: 'HomeView'
+  name: 'HomeView',
+  components: { ApiStatus }
 };
 </script>
 
