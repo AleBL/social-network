@@ -161,6 +161,8 @@ Every error uses the same body: `{ "status": "error", "error": "<message>" }`.
 - `400`: invalid input or malformed JSON body.
 - `404`: unknown route, or a `userId` that does not exist (any route that receives one).
 - `409`: conflict (email already registered, users already friends).
+- `413`: request body larger than 10 KB.
+- `429`: rate limit reached. Per client IP and per 15 minutes: 300 requests under `/api`, of which at most 30 writes (`POST`). Configurable with `RATE_LIMIT_MAX` and `RATE_LIMIT_WRITE_MAX`; the `RateLimit` response headers show the remaining quota. `/ping` is never limited.
 - `503`: database unavailable, for example AuraDB Free paused. Requests fail after about 15 seconds instead of hanging.
 - `500`: unexpected error. Details are only logged on the server, never returned.
 
