@@ -72,7 +72,7 @@
         <ul v-else class="people">
           <!-- Kept in the backend order: ranked by mutual friends. -->
           <li
-            v-for="person in recommendations"
+            v-for="person in visibleRecommendations"
             :key="person.id"
             class="recommendation"
           >
@@ -95,6 +95,14 @@
             </button>
           </li>
         </ul>
+        <button
+          v-if="hiddenRecommendations > 0"
+          type="button"
+          class="secondary show-all"
+          @click="showAllRecommendations = true"
+        >
+          Show all {{ recommendations.length }}
+        </button>
       </section>
       </div>
     </template>
@@ -117,6 +125,8 @@ import { describeMutualFriends } from '../utils/mutualFriends';
 
 const byName = (a, b) => a.name.localeCompare(b.name);
 
+const RECOMMENDATIONS_PREVIEW = 6;
+
 export default {
   name: 'UserProfileView',
   components: { AddFriendForm, LoadingState, UserAvatar },
@@ -138,10 +148,20 @@ export default {
       error: '',
       adding: null,
       actionError: '',
-      actionMessage: ''
+      actionMessage: '',
+      showAllRecommendations: false
     };
   },
   computed: {
+    // The best matches first; the long tail stays behind "Show all".
+    visibleRecommendations() {
+      return this.showAllRecommendations
+        ? this.recommendations
+        : this.recommendations.slice(0, RECOMMENDATIONS_PREVIEW);
+    },
+    hiddenRecommendations() {
+      return this.recommendations.length - this.visibleRecommendations.length;
+    },
     sortedFriends() {
       return [...this.friends].sort(byName);
     },
@@ -174,6 +194,7 @@ export default {
       this.actionError = '';
       this.actionMessage = '';
       this.user = null;
+      this.showAllRecommendations = false;
 
       try {
         const [user, friends, recommendations, allUsers] = await Promise.all([
@@ -234,7 +255,9 @@ header p {
   margin: 0;
 }
 
-.profile-header {
+/* ".card." raises the specificity above the generic ".card { display: grid }"
+   below, which was stacking the avatar, the text and a full-width button. */
+.card.profile-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
