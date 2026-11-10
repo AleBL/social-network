@@ -68,8 +68,15 @@ export default {
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
-  background: hsl(var(--avatar-hue) 70% 92%);
-  color: hsl(var(--avatar-hue) 55% 30%);
+  /* Follows the light/dark theme (see main.css). */
+  background: light-dark(
+    hsl(var(--avatar-hue) 70% 92%),
+    hsl(var(--avatar-hue) 35% 24%)
+  );
+  color: light-dark(
+    hsl(var(--avatar-hue) 55% 30%),
+    hsl(var(--avatar-hue) 80% 84%)
+  );
   font-weight: 700;
   font-size: calc(var(--size) * 0.38);
   letter-spacing: 0.02em;
@@ -88,10 +95,4 @@ export default {
   --size: 4.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .avatar {
-    background: hsl(var(--avatar-hue) 35% 24%);
-    color: hsl(var(--avatar-hue) 80% 84%);
-  }
-}
 </style>

@@ -24,6 +24,7 @@
           </RouterLink>
           <RouterLink to="/graph" class="nav-link">Graph</RouterLink>
         </nav>
+        <ThemeToggle />
       </div>
     </header>
 
@@ -45,10 +46,11 @@
 
 <script>
 import ApiStatus from './components/ApiStatus.vue';
+import ThemeToggle from './components/ThemeToggle.vue';
 
 export default {
   name: 'App',
-  components: { ApiStatus }
+  components: { ApiStatus, ThemeToggle }
 };
 </script>
 
@@ -108,6 +110,7 @@ export default {
 nav {
   display: flex;
   gap: 0.25rem;
+  margin-left: auto;
   overflow-x: auto;
 }
 
