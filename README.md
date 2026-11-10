@@ -192,7 +192,11 @@ Every error uses the same body: `{ "status": "error", "error": "<message>" }`.
 ### **User Routes** 🧑‍🤝‍🧑
 
 - **`GET /api/users/`**
-  Returns all users.
+  Lists users sorted by name, one page at a time, with optional search.
+  **Query Parameters** (all optional):
+  - `search` (string, up to 100 characters): matches names ignoring case and accents (`julia` finds `Júlia`) or part of the email.
+  - `limit` (integer, 1 to 100, default 20) and `offset` (integer, default 0).
+  **Response**: `{ "data": [{ "id", "name", "email" }], "count", "total", "limit", "offset" }`, where `total` is the number of matches. Invalid values answer `400`.
 
 - **`GET /api/users/:userId`**
   Retrieves a specific user by ID.
