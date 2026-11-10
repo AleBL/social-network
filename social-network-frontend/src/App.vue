@@ -5,6 +5,7 @@
       <nav aria-label="Main">
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/users">Users</RouterLink>
+        <RouterLink to="/common-friends">Common friends</RouterLink>
       </nav>
     </header>
 
