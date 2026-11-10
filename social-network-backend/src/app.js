@@ -29,6 +29,10 @@ app.get('/ping', (req, res) => {
 const userRoutes = require('./routes/userRoutes');
 app.use('/api/users', userRoutes);
 
+// Own path: /api/users/graph would be captured by /api/users/:userId.
+const graphRoutes = require('./routes/graphRoutes');
+app.use('/api/graph', graphRoutes);
+
 // Must be registered after all routes.
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -181,6 +181,33 @@ describe('API with a real Neo4j', () => {
       expect(res.status).toBe(400);
     });
 
+    it('returns the graph with each friendship once and no emails', async () => {
+      const res = await api().get('/api/graph');
+
+      expect(res.status).toBe(200);
+      expect(names(res.body.data.nodes)).toEqual([
+        'Alice',
+        'Bob',
+        'Carol',
+        'Dave'
+      ]);
+      expect(res.body.data.nodes[0]).not.toHaveProperty('email');
+
+      // 4 friendships, stored in both directions in Neo4j, appear once each.
+      const pairs = res.body.data.links
+        .map(({ source, target }) => [source, target].sort().join('-'))
+        .sort();
+      const expected = [
+        [alice, bob],
+        [alice, carol],
+        [bob, dave],
+        [carol, dave]
+      ]
+        .map(([a, b]) => [a.id, b.id].sort().join('-'))
+        .sort();
+      expect(pairs).toEqual(expected);
+    });
+
     it('answers 404 when a user does not exist', async () => {
       const friendship = await befriend(alice.id, 'unknown-id');
       const friends = await api().get('/api/users/listFriends/unknown-id');
